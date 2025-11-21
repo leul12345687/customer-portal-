@@ -1,10 +1,11 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:3000/customer"; // Your NestJS API
+const API_BASE_URL = "https://lmgtech-4.onrender.com/customer"; // Your NestJS API
 
 // Create Axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true
 });
 
 // ===========================================================

@@ -97,7 +97,7 @@
 import { ref, onMounted, computed } from "vue";
 import axios from "axios";
 
-const API_URL = "http://localhost:3000";
+const API_URL = "https://lmgtech-4.onrender.com";
 const token = localStorage.getItem("token");
 
 const bookings = ref([]);

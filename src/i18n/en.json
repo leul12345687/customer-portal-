@@ -1,7 +1,20 @@
 {
   "welcome": "Welcome to LMG Tech System",
-  "login":"customer login portal",
-   "bookingTitle": "Create a Booking",
+  "login": "Customer Login Portal",
+
+  "email": "Email",
+  "emailPlaceholder": "Enter your email",
+
+  "password": "Password",
+  "passwordPlaceholder": "Enter your password",
+  "show": "Show",
+  "hide": "Hide",
+
+  "noAccount": "Don't have an account?",
+  "createAccount": "Create Account",
+  "rights": "All rights reserved",
+
+  "bookingTitle": "Create a Booking",
   "customerName": "Customer Name",
   "enterName": "Enter full name",
   "customerPhone": "Phone Number",
@@ -17,6 +30,7 @@
   "bookingSuccess": "Booking successfully created!",
   "bookingFailed": "Booking failed. Please try again.",
   "notLoggedIn": "You must be logged in to book.",
+
   "register": {
     "title": "Create Your Account",
     "fullName": "Full Name",
@@ -42,17 +56,18 @@
     "success": "Registration successful!",
     "failed": "Registration failed."
   },
+
   "availableProperties": "Available Properties",
   "selectCategory": "Select Category",
   "search": "Search",
   "noProperties": "No properties found.",
   "loading": "Loading...",
+
   "merchant": "Merchant",
   "price": "Price",
   "business": "Business",
   "perDay": "per day",
   "details": "Details",
-  "hide": "Hide",
   "description": "Description",
   "category": "Category",
   "priceUnit": "Price Unit",
@@ -62,8 +77,8 @@
   "merchantEmail": "Merchant Email",
   "merchantPhone": "Phone Number",
   "merchantBusiness": "Business Name",
-  
- "bookings": {
+
+  "bookings": {
     "title": "All Bookings",
     "loading": "Loading all bookings...",
     "noBookings": "No bookings found.",
@@ -78,23 +93,20 @@
     "details": "Details",
     "hide": "Hide",
     "actions": "Actions"
+  },
 
-  }
-
-,"hour": "Hour",
+  "hour": "Hour",
   "day": "Day",
   "week": "Week",
   "month": "Month",
   "year": "Year",
-  
+
   "myBookings": "My Bookings",
   "loadingBookings": "Loading bookings...",
   "noBookings": "No bookings found.",
-  
+
   "duration": "Duration",
-  
   "totalPrice": "Total Price",
-  
   "propertyImages": "Property Images",
   "paymentProof": "Payment Proof",
   "uploadProof": "Upload Payment Proof",
@@ -103,16 +115,16 @@
   "uploadFailed": "Upload failed.",
   "viewDetails": "View Details",
   "hideDetails": "Hide Details",
-  
+
   "dashboard": "Dashboard",
   "list of properties": "List of Properties",
   "createBooking": "Create Booking",
-  
+
   "allBookings": "All Bookings",
-   "myProfile": "My Profile",
+  "myProfile": "My Profile",
   "loadingProfile": "Loading your profile...",
   "fullName": "Full Name",
-  "email": "Email",
+  
   "phonenumber": "Phone Number",
   "address": "Address",
   "profilePicture": "Profile Picture",
@@ -120,9 +132,15 @@
   "updateProfile": "Update Profile",
   "profileUpdatedSuccess": "Profile updated successfully!",
   "errorFetchingProfile": "Failed to fetch your profile. Please try again.",
-  "errorUpdatingProfile": "Failed to update your profile. Please try again."
+  "errorUpdatingProfile": "Failed to update your profile. Please try again.",
+   "timeInterval": "Time Interval",
+  "securityDeposit": "Security Deposit",
+  "optionalDeposit": "Optional Deposit",
+  "logout": "Logout",
+  "selectLanguage": "Select Language",
+  "listOfProperties": "List of Properties",
+  "Select availableProperties by category": "Select available properties by category",
+  "noPropertiesFound": "No properties found",
+  "loadingProperties": "Loading properties...",
+  "bookNow": "Book Now"
 }
-
-
-
-

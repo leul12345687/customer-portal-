@@ -113,7 +113,7 @@ import axios from "axios";
 
 const { t } = useI18n();
 
-const API_URL = "http://localhost:3000";
+const API_URL = "https://lmgtech-4.onrender.com";
 const token = localStorage.getItem("token");
 
 const bookings = ref([]);

@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:3000/booking";
+const API_URL = "https://lmgtech-4.onrender.com/booking";
 
 export async function createBooking(form, token) {
   try {
@@ -8,6 +8,7 @@ export async function createBooking(form, token) {
 
     const response = await axios.post(
       `${API_URL}/create`,
+      
       {
         assetName: form.assetName,
         merchantEmail: form.merchantEmail,
