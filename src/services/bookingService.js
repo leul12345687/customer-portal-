@@ -24,7 +24,7 @@ export async function createBooking(form, token) {
           "Content-Type": "application/json",
           "Accept-Language": lang, // 👈 CORRECT place for language
           
-        },timeout: 10000, // 10 seconds timeout
+        }
       }
     );
 
