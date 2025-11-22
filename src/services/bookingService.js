@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:3000"; // or your Render API URL
+const API_URL = "https://lmgtech-4.onrender.com"; // or your Render API URL
 
 export async function createBooking(form, token) {
   try {

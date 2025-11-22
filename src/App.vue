@@ -5,7 +5,7 @@
       <!-- ===== Topbar ===== -->
       <header class="public-topbar">
         <div class="public-topbar-center">
-          <div class="title">{{ t("availableProperties") }}</div>
+          <div class="title">{{ t("welcome") }}</div>
         </div>
 
         <!-- ===== Profile Icon Dropdown ===== -->
