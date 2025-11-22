@@ -3,15 +3,7 @@
     <div class="login-card">
       <h2>{{ t("login") }}</h2>
 
-      <!-- Language Selector -->
-      <div class="lang-selector">
-        <select v-model="currentLang" @change="changeLang">
-          <option value="en">English</option>
-          <option value="am">አማርኛ</option>
-          <option value="om">Afaan Oromoo</option>
-        </select>
-      </div>
-
+      
       <form @submit.prevent="handleLogin" class="login-form">
         <!-- Email -->
         <div class="form-group">

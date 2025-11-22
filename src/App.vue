@@ -8,14 +8,22 @@
           <div class="title">{{ t("availableProperties") }}</div>
         </div>
 
-        <div class="public-topbar-right">
-          <button class="login-btn" @click="goToLogin">{{ t("login") }}</button>
+        <!-- ===== Profile Icon Dropdown ===== -->
+        <div class="profile-container">
+          <div class="profile-icon" @click="toggleMenu">
+            <span>👤</span>
+          </div>
 
-          <select v-model="selectedLang" @change="changeLang" class="lang-select">
-            <option value="en">English</option>
-            <option value="am">አማርኛ</option>
-            <option value="om">Afaan Oromoo</option>
-          </select>
+          <!-- Dropdown -->
+          <div v-if="menuOpen" class="dropdown-menu">
+            <button @click="goToLogin">{{ t("login") }}</button>
+
+            <select v-model="selectedLang" @change="changeLang">
+              <option value="en">English</option>
+              <option value="am">አማርኛ</option>
+              <option value="om">Afaan Oromoo</option>
+            </select>
+          </div>
         </div>
       </header>
 
@@ -27,6 +35,7 @@
       <footer class="public-footer">
         © {{ new Date().getFullYear() }} LMG Tech System — {{ t("rights") }}
       </footer>
+
     </div>
   </div>
 </template>
@@ -42,12 +51,21 @@ const { t, locale } = useI18n();
 const selectedLang = ref(localStorage.getItem("lang") || "en");
 locale.value = selectedLang.value;
 
+const menuOpen = ref(false);
+
+const toggleMenu = () => {
+  menuOpen.value = !menuOpen.value;
+};
+
+const goToLogin = () => {
+  menuOpen.value = false;
+  router.push("/login");
+};
+
 const changeLang = () => {
   locale.value = selectedLang.value;
   localStorage.setItem("lang", selectedLang.value);
 };
-
-const goToLogin = () => router.push("/login");
 
 watch(locale, (lang) => localStorage.setItem("lang", lang));
 </script>
@@ -58,7 +76,7 @@ watch(locale, (lang) => localStorage.setItem("lang", lang));
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: white; /* 🚀 CLEAN FULL WHITE */
+  background: white;
 }
 
 /* ===== Topbar ===== */
@@ -68,7 +86,7 @@ watch(locale, (lang) => localStorage.setItem("lang", lang));
   left: 0;
   width: 100%;
   height: 90px;
-  background: #0c5b6fff; /* Same theme as dashboard */
+  background: #0c5b6fff;
   color: white;
   display: flex;
   align-items: center;
@@ -89,42 +107,62 @@ watch(locale, (lang) => localStorage.setItem("lang", lang));
   font-size: 20px;
 }
 
-/* ===== Topbar Right Controls ===== */
-.public-topbar-right {
+/* ===== Profile Icon ===== */
+.profile-container {
   position: absolute;
-  right: 16px;
+  right: 20px; /* ➤ 20px from right */
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.profile-icon {
+  width: 40px;
+  height: 40px;
+  background: white;
+  color: #0c5b6fff;
+  border-radius: 50%;
   display: flex;
   align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== Dropdown ===== */
+.dropdown-menu {
+  position: absolute;
+  top: 50px;
+  right: 0;
+  width: 150px;
+  background: white;
+  color: #111827;
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  display: flex;
+  flex-direction: column;
   gap: 10px;
 }
 
-.login-btn {
-  background: white;
-  color: #0c5b6fff;
+.dropdown-menu button {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: #0c5b6fff;
+  color: white;
   border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: 0.2s ease;
 }
 
-.login-btn:hover {
-  background: #e3efe4;
-}
-
-.lang-select {
-  padding: 6px 10px;
+.dropdown-menu select {
+  padding: 6px 8px;
   border-radius: 6px;
-  border: 1px solid #d1d5db;
-  font-size: 14px;
-  background: white;
-  color: #111827;
+  border: 1px solid #ccc;
 }
 
 /* ===== Main Area ===== */
 .public-main {
-  margin-top: 90px; /* Avoid overlap with topbar */
+  margin-top: 90px;
   padding: 20px;
   width: 100%;
 }
@@ -136,29 +174,5 @@ watch(locale, (lang) => localStorage.setItem("lang", lang));
   text-align: center;
   padding: 12px 0;
   margin-top: auto;
-}
-
-/* ===== Responsive ===== */
-@media (max-width: 768px) {
-  .public-topbar {
-    flex-direction: column;
-    height: auto;
-    padding: 10px;
-    text-align: center;
-  }
-
-  .public-topbar-center {
-    position: static;
-    transform: none;
-    margin-bottom: 8px;
-  }
-
-  .public-topbar-right {
-    position: static;
-  }
-
-  .public-main {
-    margin-top: 120px;
-  }
 }
 </style>
