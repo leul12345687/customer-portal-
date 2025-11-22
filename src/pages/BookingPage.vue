@@ -194,50 +194,49 @@ async function handleBooking() {
 </script>
 
 <style scoped>
+/* ==== GLOBAL RESPONSIVE & MOBILE-FIRST STYLING ==== */
+
 .booking-wrapper {
   width: 100%;
   min-height: 100vh;
-  background-color: #f3f4f6;
+
   display: flex;
-  /* ✅ CHANGE 1: Center horizontally */
-  justify-content: center; 
-  /* ✅ CHANGE 2: Keep it aligned to the top */
-  align-items: flex-start; 
-  
-  /* Apply padding at the top/bottom for spacing */
-  padding: 40px 20px; 
+  justify-content: center;
+  align-items: flex-start;
+
+  padding: 20px 16px;
+  background-color: #f2f4f7;
   box-sizing: border-box;
 }
 
-.booking-card {
-  width: 100%;
-  max-width: 500px; /* This ensures it stays within a reasonable size */
-  background: white;
-  padding: 32px;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
+/* ===== FORM CARD ===== */
 
 .booking-card {
   width: 100%;
-  max-width: 500px;
+  max-width: 480px;
+
   background: white;
-  padding: 32px;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 24px;
+
+  border-radius: 18px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+
+  animation: fadeIn 0.3s ease-out;
 }
 
 .booking-card h2 {
-  color: #1e3a8a;
-  font-weight: 600;
-  font-size: 22px;
-  margin-bottom: 20px;
+  font-size: 20px;
+  color: #1f2a44;
+  font-weight: 700;
+  margin-bottom: 18px;
 }
+
+/* ==== FORM ==== */
 
 .booking-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
 }
 
 .form-group {
@@ -246,61 +245,99 @@ async function handleBooking() {
 }
 
 .form-group label {
-  font-weight: 500;
   margin-bottom: 6px;
+  font-weight: 600;
+  color: #374151;
 }
 
 .form-group input,
 .form-group select {
   padding: 12px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 14px;
-  transition: border-color 0.2s;
+  border-radius: 10px;
+
+  background: #ffffff;
+  border: 1px solid #c7d1e0;
+
+  font-size: 15px;
+  transition: 0.25s ease-in-out;
 }
 
 .form-group input:focus,
 .form-group select:focus {
   border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
   outline: none;
 }
 
+/* ==== RESPONSIVE ROW ==== */
+
 .form-row {
   display: flex;
-  gap: 12px;
+  gap: 14px;
 }
 
+/* Mobile: stack fields */
+@media (max-width: 600px) {
+  .form-row {
+    flex-direction: column;
+  }
+}
+
+/* Desktop: 50/50 split */
 .half {
   flex: 1;
 }
 
+/* ==== BUTTON ==== */
+
 button {
-  padding: 12px;
-  background-color: wheat;
-  color: black;
+  padding: 14px;
+
+  background: #2563eb;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
+
+  color: white;
   font-weight: 600;
+  font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.2s;
+
+  transition: background 0.25s;
 }
 
 button:hover {
-  background-color: gray;
+  background: #1d4ed8;
 }
 
 button:disabled {
-  opacity: 0.6;
+  background: #93a4c1;
   cursor: not-allowed;
 }
 
+/* ==== MESSAGES ==== */
+
 .success-msg {
-  color: green;
+  color: #10b981;
   margin-top: 10px;
+  font-weight: 600;
 }
 
 .error-msg {
-  color: red;
+  color: #dc2626;
   margin-top: 10px;
+  font-weight: 600;
 }
+
+/* Fade animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 </style>

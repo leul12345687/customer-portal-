@@ -1,16 +1,16 @@
 <template>
   <div id="app">
-    <!-- ✅ Public Layout (Property List + Topbar) -->
     <div class="public-wrap">
+
+      <!-- ===== Topbar ===== -->
       <header class="public-topbar">
-        <!-- Centered Title -->
         <div class="public-topbar-center">
           <div class="title">{{ t("availableProperties") }}</div>
         </div>
 
-        <!-- Right side: Login + Language -->
         <div class="public-topbar-right">
           <button class="login-btn" @click="goToLogin">{{ t("login") }}</button>
+
           <select v-model="selectedLang" @change="changeLang" class="lang-select">
             <option value="en">English</option>
             <option value="am">አማርኛ</option>
@@ -19,7 +19,7 @@
         </div>
       </header>
 
-      <!-- 🌍 Main content -->
+      <!-- ===== Main Content ===== -->
       <main class="public-main">
         <RouterView />
       </main>
@@ -39,32 +39,26 @@ import { useI18n } from "vue-i18n";
 const router = useRouter();
 const { t, locale } = useI18n();
 
-// 🌐 Reactive language selection
 const selectedLang = ref(localStorage.getItem("lang") || "en");
 locale.value = selectedLang.value;
 
-// Update i18n and localStorage whenever user changes language
 const changeLang = () => {
-  locale.value = selectedLang.value; // update vue-i18n
-  localStorage.setItem("lang", selectedLang.value); // persist selection
+  locale.value = selectedLang.value;
+  localStorage.setItem("lang", selectedLang.value);
 };
 
-// Navigate to login page
 const goToLogin = () => router.push("/login");
 
-// Optional: watch locale changes and persist automatically
-watch(locale, (newLang) => {
-  localStorage.setItem("lang", newLang);
-});
+watch(locale, (lang) => localStorage.setItem("lang", lang));
 </script>
 
 <style>
-/* ===== Public Layout ===== */
+/* ===== Global Layout ===== */
 .public-wrap {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #f3f4f6;
+  background: white; /* 🚀 CLEAN FULL WHITE */
 }
 
 /* ===== Topbar ===== */
@@ -73,17 +67,17 @@ watch(locale, (newLang) => {
   top: 0;
   left: 0;
   width: 100%;
-  height: 100px;
-  background: #20b2aa; /* blue-green */
+  height: 90px;
+  background: #0c5b6fff; /* Same theme as dashboard */
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  padding: 0 20px;
   z-index: 1000;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
-/* Center title */
 .public-topbar-center {
   position: absolute;
   left: 50%;
@@ -93,22 +87,20 @@ watch(locale, (newLang) => {
 .title {
   font-weight: 700;
   font-size: 20px;
-  text-align: center;
 }
 
-/* Right section */
+/* ===== Topbar Right Controls ===== */
 .public-topbar-right {
   position: absolute;
-  right: 18px;
+  right: 16px;
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-/* Login button */
 .login-btn {
   background: white;
-  color: #20b2aa;
+  color: #0c5b6fff;
   border: none;
   border-radius: 6px;
   padding: 6px 12px;
@@ -118,10 +110,9 @@ watch(locale, (newLang) => {
 }
 
 .login-btn:hover {
-  background: #e0f7f5;
+  background: #e3efe4;
 }
 
-/* Language dropdown */
 .lang-select {
   padding: 6px 10px;
   border-radius: 6px;
@@ -131,18 +122,43 @@ watch(locale, (newLang) => {
   color: #111827;
 }
 
-/* ===== Main ===== */
+/* ===== Main Area ===== */
 .public-main {
-  margin-top: 100px;
-  padding: 24px;
+  margin-top: 90px; /* Avoid overlap with topbar */
+  padding: 20px;
+  width: 100%;
 }
 
 /* ===== Footer ===== */
 .public-footer {
   background: #111827;
-  color: #fff;
+  color: white;
   text-align: center;
   padding: 12px 0;
   margin-top: auto;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .public-topbar {
+    flex-direction: column;
+    height: auto;
+    padding: 10px;
+    text-align: center;
+  }
+
+  .public-topbar-center {
+    position: static;
+    transform: none;
+    margin-bottom: 8px;
+  }
+
+  .public-topbar-right {
+    position: static;
+  }
+
+  .public-main {
+    margin-top: 120px;
+  }
 }
 </style>
