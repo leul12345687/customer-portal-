@@ -69,37 +69,29 @@ const userName = ref("");
 const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
 userName.value = storedUser?.name || "Guest";
 
-// Language state
+// Language
 const selectedLang = ref(localStorage.getItem("lang") || "en");
 locale.value = selectedLang.value;
 
-// Dropdown state
+// Dropdown menu open/close
 const menuOpen = ref(false);
-
-// Reference for outside click
 const dropdownArea = ref(null);
 
-// Toggle dropdown open/close
 const toggleMenu = () => {
   menuOpen.value = !menuOpen.value;
 };
 
-// Close menu when clicking outside
+// Close on outside click
 const handleClickOutside = (event) => {
   if (dropdownArea.value && !dropdownArea.value.contains(event.target)) {
     menuOpen.value = false;
   }
 };
 
-onMounted(() => {
-  document.addEventListener("click", handleClickOutside);
-});
+onMounted(() => document.addEventListener("click", handleClickOutside));
+onBeforeUnmount(() => document.removeEventListener("click", handleClickOutside));
 
-onBeforeUnmount(() => {
-  document.removeEventListener("click", handleClickOutside);
-});
-
-// Navigation & Actions
+// Navigation
 const goToLogin = () => {
   menuOpen.value = false;
   router.push("/login");
@@ -142,9 +134,12 @@ watch(locale, (lang) => localStorage.setItem("lang", lang));
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
   padding: 0 25px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  z-index: 1000;
+
+  /* CRITICAL FIX */
+  overflow: visible !important;
 }
 
 /* Center title */
@@ -158,22 +153,22 @@ watch(locale, (lang) => localStorage.setItem("lang", lang));
   font-size: 22px;
   font-weight: bold;
 }
-/* RIGHT SIDE AREA — FIXED */
+
+/* RIGHT AREA */
 .topbar-right {
   position: absolute;
-  right: 20px;          /* ← not too close to the edge */
+  right: 5%;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
   align-items: center;
-  justify-content: center;
 
-  /* PREVENT CLIPPING */
-  overflow: visible;
+  /* IMPORTANT FIX */
+  overflow: visible !important;
   z-index: 2000;
 }
 
-/* PROFILE ICON FIX */
+/* PROFILE ICON */
 .profile-icon {
   width: 42px;
   height: 42px;
@@ -185,27 +180,25 @@ watch(locale, (lang) => localStorage.setItem("lang", lang));
   justify-content: center;
   cursor: pointer;
   font-size: 22px;
-
-  /* IMPORTANT FIX FOR CUTTING OFF */
-  margin-right: 5px;   /* add small inner spacing */
   box-shadow: 0 2px 6px rgba(0,0,0,0.25);
 }
-
-/* Dropdown menu */
 .dropdown-menu {
-  margin-top: 10px;
-  width: 180px;
+  position: absolute;
+  top: 55px;
+  right: 0;
+  width: 190px;
   background: white;
   border-radius: 10px;
   padding: 12px;
-  color: #111827;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.20);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
+  overflow: visible !important;
 }
 
-/* User name section */
+
+/* User */
 .user-info {
   padding-bottom: 8px;
   border-bottom: 1px solid #ddd;
@@ -235,7 +228,6 @@ watch(locale, (lang) => localStorage.setItem("lang", lang));
   border: 1px solid #ccc;
 }
 
-/* Main content spacing */
 .public-main {
   margin-top: 110px;
   padding: 20px;
@@ -250,7 +242,7 @@ watch(locale, (lang) => localStorage.setItem("lang", lang));
   margin-top: auto;
 }
 
-/* ===== Animation for dropdown ===== */
+/* Animations */
 .fade-slide-enter-active,
 .fade-slide-leave-active {
   transition: all 0.25s ease;
