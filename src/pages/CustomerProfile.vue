@@ -8,7 +8,7 @@
       <p v-if="error" class="error-text">{{ error }}</p>
 
       <form v-if="!loading && profile" class="profile-form" @submit.prevent="updateProfile">
-        
+
         <!-- Profile Image -->
         <div class="image-section">
           <img
@@ -47,7 +47,10 @@
           <input type="text" v-model="form.address" required />
         </div>
 
-        <button type="submit" class="save-btn">Save Changes</button>
+        <button type="submit" class="save-btn" :disabled="updating">
+          <span v-if="updating">Saving...</span>
+          <span v-else>Save Changes</span>
+        </button>
       </form>
 
       <!-- Messages -->
@@ -63,6 +66,7 @@ export default {
   data() {
     return {
       loading: true,
+      updating: false,
       error: null,
       profile: null,
       previewImage: null,
@@ -84,7 +88,10 @@ export default {
   },
 
   methods: {
+    // =================== FETCH PROFILE ===================
     async fetchProfile() {
+      this.loading = true;
+      this.error = null;
       try {
         const res = await api.get("/customer/profile");
         this.profile = res.data;
@@ -95,41 +102,66 @@ export default {
         this.form.phonenumber = this.profile.phonenumber;
         this.form.address = this.profile.address;
       } catch (err) {
-        this.error = "Unable to load profile.";
+        this.error = err.response?.data?.message || "Unable to load profile.";
       } finally {
         this.loading = false;
       }
     },
 
+    // =================== IMAGE SELECTION ===================
     onImageSelected(e) {
       const file = e.target.files[0];
       if (!file) return;
 
+      // Validate file type
+      const validTypes = ["image/jpeg", "image/png", "image/jpg"];
+      if (!validTypes.includes(file.type)) {
+        this.error = "Only JPG, JPEG, or PNG images are allowed!";
+        return;
+      }
+
+      // Preview
       this.form.profileImage = file;
       this.previewImage = URL.createObjectURL(file);
+      this.error = null;
     },
 
+    // =================== UPDATE PROFILE ===================
     async updateProfile() {
+      this.updating = true;
+      this.successMessage = "";
+      this.error = null;
+
       try {
         const formData = new FormData();
-        formData.append("fullName", this.form.fullName);
-        formData.append("email", this.form.email);
-        formData.append("phonenumber", this.form.phonenumber);
-        formData.append("address", this.form.address);
 
-        if (this.form.profileImage) {
-          formData.append("profileImage", this.form.profileImage);
-        }
+        // Append only non-empty fields
+        if (this.form.fullName) formData.append("fullName", this.form.fullName);
+        if (this.form.email) formData.append("email", this.form.email);
+        if (this.form.phonenumber) formData.append("phonenumber", this.form.phonenumber);
+        if (this.form.address) formData.append("address", this.form.address);
+        if (this.form.profileImage) formData.append("profileImage", this.form.profileImage);
 
         const res = await api.patch("/customer/profile", formData, {
           headers: { "Content-Type": "multipart/form-data" },
         });
 
-        this.successMessage = "Profile updated successfully!";
+        this.successMessage = res.data?.message || "Profile updated successfully!";
         this.profile = res.data.updatedCustomer;
         this.previewImage = null;
+
+        // Update form with returned data
+        this.form.fullName = this.profile.fullName;
+        this.form.email = this.profile.email;
+        this.form.phonenumber = this.profile.phonenumber;
+        this.form.address = this.profile.address;
+        this.form.profileImage = null;
+
       } catch (err) {
-        this.error = "Profile update failed.";
+        // Show backend error message if available
+        this.error = err.response?.data?.message || "Profile update failed.";
+      } finally {
+        this.updating = false;
       }
     },
   },
@@ -137,34 +169,25 @@ export default {
 </script>
 
 <style scoped>
-/* ===========================
-    WRAPPER (CENTERED LAYOUT)
-   =========================== */
+/* ========================= WRAPPER ========================= */
 .profile-wrapper {
   width: 100%;
   min-height: 100vh;
-
   display: flex;
   justify-content: center;
   align-items: center;
-
   padding: 20px 16px;
   background: white;
 }
 
-/* ===========================
-        CARD
-   =========================== */
+/* ========================= CARD ========================= */
 .profile-card {
   width: 100%;
   max-width: 480px;
-
   background: white;
   padding: 24px;
-
   border-radius: 18px;
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
-
   animation: fadeIn 0.3s ease-out;
 }
 
@@ -175,9 +198,7 @@ export default {
   font-size: 22px;
 }
 
-/* ===========================
-        IMAGE SECTION
-   =========================== */
+/* ========================= IMAGE ========================= */
 .image-section {
   text-align: center;
   margin-bottom: 20px;
@@ -194,20 +215,15 @@ export default {
 .upload-btn {
   display: inline-block;
   margin-top: 10px;
-
   background: #1976d2;
   color: white;
-
   padding: 8px 14px;
   border-radius: 8px;
-
   cursor: pointer;
   font-size: 14px;
 }
 
-/* ===========================
-        FORM CONTROLS
-   =========================== */
+/* ========================= FORM ========================= */
 .profile-form {
   display: flex;
   flex-direction: column;
@@ -227,10 +243,8 @@ export default {
 .form-group input {
   padding: 12px;
   border-radius: 10px;
-
   border: 1px solid #c7d1e0;
   font-size: 15px;
-
   transition: 0.25s ease-in-out;
 }
 
@@ -240,22 +254,16 @@ export default {
   outline: none;
 }
 
-/* ===========================
-        BUTTON
-   =========================== */
+/* ========================= BUTTON ========================= */
 .save-btn {
   width: 100%;
   padding: 14px;
-
   background: #2563eb;
   color: white;
-
   border: none;
   border-radius: 10px;
-
   font-size: 16px;
   font-weight: 600;
-
   cursor: pointer;
   transition: 0.25s;
 }
@@ -264,9 +272,12 @@ export default {
   background: #1d4ed8;
 }
 
-/* ===========================
-        MESSAGES
-   =========================== */
+.save-btn:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+}
+
+/* ========================= MESSAGES ========================= */
 .success-msg {
   margin-top: 15px;
   text-align: center;
@@ -279,7 +290,7 @@ export default {
   color: #dc2626;
 }
 
-/* Fade animation */
+/* ========================= ANIMATION ========================= */
 @keyframes fadeIn {
   from {
     opacity: 0;
