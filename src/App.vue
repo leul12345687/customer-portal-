@@ -91,7 +91,7 @@ watch(locale, (lang) => localStorage.setItem("lang", lang));
 
 /* ===== Topbar ===== */
 .public-topbar {
-  position: fixed;
+  position:fixed;
   top: 0;
   left: 0;
   width: 100%;
@@ -120,9 +120,12 @@ watch(locale, (lang) => localStorage.setItem("lang", lang));
 /* ===== Profile Icon ===== */
 .profile-container {
   position: absolute;
-  right: 20px;
+  right: 20px;       /* EXACT 20px from the right side */
   top: 50%;
   transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .profile-icon {

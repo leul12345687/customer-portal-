@@ -188,7 +188,7 @@ onMounted(getMyBookings);
 <style scoped>
 /* PAGE */
 .page {
-  padding: 10px;
+  padding: 0px;
   background:white;
   min-height: 100vh;
 }

@@ -68,12 +68,14 @@ const logout = () => {
   display: flex;
   flex-direction: column;
   border-right: 1px solid #0e7c6d;
+
   position: fixed;
   left: 0;
-  top: 0;
+  top: 70px;         /* Push down from top */
   bottom: 0;
+
   transition: transform 0.3s ease;
-  transform: translateX(0); /* desktop visible */
+  transform: translateX(0);
 }
 
 .sidebar-brand {
