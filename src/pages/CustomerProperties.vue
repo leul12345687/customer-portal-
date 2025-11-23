@@ -1,9 +1,14 @@
 <template>
   <div class="properties-page">
 
-    <!-- =========================
-       SCREEN 1: CATEGORY LIST
-    ========================== -->
+    <!-- ================= BACK ARROW ================= -->
+    <div v-if="!showCategories" class="back-container">
+      <button class="back-btn" @click="goBack">
+        ← {{ t("back") }}
+      </button>
+    </div>
+
+    <!-- ================= CATEGORY PAGE ================= -->
     <div v-if="showCategories">
       <h2>{{ t("Select availableProperties by category") }}</h2>
 
@@ -18,17 +23,8 @@
       </div>
     </div>
 
-    <!-- =========================
-       SCREEN 2: PROPERTIES PAGE
-    ========================== -->
-    <div v-else>
-
-      <!-- Back Button -->
-      <div class="back-btn" @click="goBack">
-        ← {{ t("back") }}
-      </div>
-
-      <h2>{{ selectedCategoryLabel }}</h2>
+    <!-- ================= PROPERTIES PAGE ================= -->
+    <div v-if="!showCategories">
 
       <!-- Loading -->
       <div v-if="loading" class="loading-section">
@@ -55,12 +51,13 @@
 
           <div v-else class="no-image">No Image</div>
 
+          <!-- Property Information -->
           <h3>{{ property.name }}</h3>
           <p class="desc">{{ property.description }}</p>
-
+          <p><strong>{{ t("numberOfProperty") }}:</strong> {{ property.numberOfProperty }}</p>
           <p><strong>{{ t("category") }}:</strong> {{ property.category }}</p>
 
-          <!-- Action Buttons -->
+          <!-- Buttons -->
           <div class="btn-group">
             <button class="book-btn" @click="bookNow(property)">
               {{ t("bookNow") }}
@@ -71,24 +68,36 @@
             </button>
           </div>
 
-          <!-- Details -->
+          <!-- DETAILS SECTION -->
           <transition name="fade">
             <div v-if="expanded[index]" class="details">
               <h4>{{ t("merchantInfo") }}</h4>
+
               <p><strong>{{ t("merchantName") }}:</strong> {{ property.merchant.name }}</p>
               <p><strong>{{ t("merchantEmail") }}:</strong> {{ property.merchant.email }}</p>
+              <p><strong>{{ t("merchantPhone") }}:</strong> {{ property.merchant.phone }}</p>
+              <p><strong>{{ t("businessName") }}:</strong> {{ property.merchant.businessName }}</p>
+              <p><strong>{{ t("accountNumber") }}:</strong> {{ property.merchant.acountnumber }}</p>
 
               <h4>{{ t("rentalDetails") }}</h4>
               <ul>
-                <li>Per Day: {{ property.rentalPrice.perDay }}</li>
+                <li><strong>Per Hour:</strong> {{ property.rentalPrice.perHour }}</li>
+                <li><strong>Per Day:</strong> {{ property.rentalPrice.perDay }}</li>
+                <li><strong>Per Week:</strong> {{ property.rentalPrice.perWeek }}</li>
+                <li><strong>Per Month:</strong> {{ property.rentalPrice.perMonth }}</li>
+                <li><strong>Per Year:</strong> {{ property.rentalPrice.perYear }}</li>
               </ul>
 
               <h4>{{ t("bookings") }}</h4>
               <ul v-if="property.bookings?.length">
                 <li v-for="(b, i) in property.bookings" :key="i">
-                  {{ formatDateTime(b.startDate) }} → {{ formatDateTime(b.endDate) }}
+                  {{ t("from") }} {{ formatDateTime(b.startDate) }}
+                  {{ t("to") }} {{ formatDateTime(b.endDate) }}
+                  — {{ b.numberOfProperty }} {{ t("booked") }}
+                  ({{ b.status }})
                 </li>
               </ul>
+
               <p v-else>{{ t("noBookings") }}</p>
             </div>
           </transition>
@@ -96,15 +105,12 @@
       </div>
 
       <!-- No Results -->
-      <p
-        v-if="!loading && !properties.length && !error"
-        class="no-results"
-      >
+      <p v-if="!loading && !properties.length && !error" class="no-results">
         {{ t("noPropertiesFound") }}
       </p>
     </div>
 
-    <!-- Login Prompt -->
+    <!-- LOGIN PROMPT -->
     <transition name="prompt-fade">
       <div v-if="showLoginPrompt" class="login-prompt-overlay">
         <div class="message-box">
@@ -119,11 +125,12 @@
         </div>
       </div>
     </transition>
+
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { getPropertiesByCategory } from "../services/propertyService.js";
@@ -131,7 +138,10 @@ import { getPropertiesByCategory } from "../services/propertyService.js";
 const { t } = useI18n();
 const router = useRouter();
 
-// CATEGORY DATA
+/* ===== NEW ADDED ===== */
+const showCategories = ref(true);
+
+/* ===== EXISTING STATES ===== */
 const categories = [
   { value: "EventSupply", label: "Event Supply" },
   { value: "ConstructionEquipment", label: "Construction Equipment" },
@@ -139,8 +149,6 @@ const categories = [
   { value: "Other", label: "Other" },
 ];
 
-// STATES
-const showCategories = ref(true);   // NEW → controls screen 1 / screen 2
 const category = ref("");
 const properties = ref([]);
 const loading = ref(false);
@@ -148,26 +156,22 @@ const error = ref("");
 const expanded = ref({});
 const showLoginPrompt = ref(false);
 
-// Label for title
-const selectedCategoryLabel = computed(() => {
-  return categories.find(c => c.value === category.value)?.label || "";
-});
 
-// Select Category → show properties page
+/* ===== FUNCTIONS ===== */
+
 async function selectCategory(cat) {
   category.value = cat;
-  showCategories.value = false;   // hide category page
+  showCategories.value = false;
   await fetchProperties();
 }
 
-// Go Back to category page
 function goBack() {
   showCategories.value = true;
+  category.value = "";
   properties.value = [];
   expanded.value = {};
 }
 
-// Fetch properties
 async function fetchProperties() {
   loading.value = true;
   error.value = "";
@@ -184,19 +188,10 @@ async function fetchProperties() {
   }
 }
 
-// Toggle Details
 function toggleDetails(index) {
   expanded.value[index] = !expanded.value[index];
-  expanded.value = { ...expanded.value };
 }
 
-// Login Redirect
-function goToLoginAndClearPrompt() {
-  showLoginPrompt.value = false;
-  router.push("/login");
-}
-
-// Book Now
 function bookNow(property) {
   const token = localStorage.getItem("token");
 
@@ -212,6 +207,7 @@ function bookNow(property) {
         merchantAccount: property.merchant.acountnumber,
       })
     );
+
     return;
   }
 
@@ -226,10 +222,15 @@ function bookNow(property) {
   });
 }
 
-// Format datetime
+function goToLoginAndClearPrompt() {
+  showLoginPrompt.value = false;
+  router.push("/login");
+}
+
 function formatDateTime(dateStr) {
   if (!dateStr) return "";
-  return new Date(dateStr).toLocaleString([], {
+  const d = new Date(dateStr);
+  return d.toLocaleString([], {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -240,267 +241,148 @@ function formatDateTime(dateStr) {
 </script>
 
 <style scoped>
-/* ========== Page Layout ========== */
+/* ===== BACK BUTTON ===== */
+.back-container {
+  margin-bottom: 15px;
+}
+.back-btn {
+  background: #1e3a8a;
+  color: white;
+  padding: 10px 18px;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+.back-btn:hover {
+  background: #162f6b;
+}
+
+/* ===== PAGE BASE ===== */
 .properties-page {
   padding: 10px;
   background: white;
   min-height: 100vh;
 }
 h2 {
-  font-size: 26px;
-  color: #1e3a8a;
   text-align: center;
-  margin-bottom: 24px;
+  color: #1e3a8a;
+  margin-bottom: 20px;
 }
 
-/* ===== Category Buttons ===== */
+/* ===== CATEGORY BUTTONS ===== */
 .category-buttons {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
   justify-content: center;
-  margin-bottom: 20px;
+  gap: 12px;
 }
 .category-buttons button {
-  background-color: #ffffff;
-  color: #1e3a8a;
-  font-weight: 700;
+  padding: 14px 20px;
   border: 2px solid #1e3a8a;
-  padding: 15px 25px;
-  border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  min-width: 160px;
-  text-align: center;
-}
-.category-buttons button.active,
-.category-buttons button:hover {
-  background-color: #1e3a8a;
-  color: #ffffff;
-  transform: scale(1.05);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* ===== Loading ===== */
-.loading-section {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  justify-content: center;
-  margin: 20px 0;
   color: #1e3a8a;
-  font-weight: 500;
+  background: white;
+  font-weight: bold;
+  border-radius: 10px;
+  cursor: pointer;
 }
-.spinner {
-  width: 22px;
-  height: 22px;
-  border: 3px solid #dbeafe;
-  border-top-color: #1e3a8a;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+.category-buttons button:hover {
+  background: #1e3a8a;
+  color: white;
 }
-@keyframes spin { to { transform: rotate(360deg); } }
 
-/* ===== Property Cards ===== */
+/* ===== PROPERTY CARDS ===== */
 .property-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
   gap: 20px;
 }
+
 .property-card {
   background: white;
-  padding: 18px;
-  border-radius: 16px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
   border: 2px solid black;
-  transition: 0.25s ease;
+  padding: 15px;
+  border-radius: 14px;
 }
-.property-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
-}
+
 .property-img {
   width: 100%;
   height: 200px;
+  border-radius: 10px;
   object-fit: cover;
-  border-radius: 12px;
-}
-.no-image {
-  height: 200px;
-  background: #e5e7eb;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  color: #6b7280;
-  font-weight: 500;
-}
-h3 {
-  margin: 12px 0 6px;
-  color: #111827;
-  font-size: 20px;
-}
-.desc {
-  color: #4b5563;
-  font-size: 14px;
-  margin-bottom: 8px;
 }
 
-/* ===== Buttons ===== */
+.no-image {
+  height: 200px;
+  background: #ddd;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.desc {
+  color: #555;
+}
+
+/* ===== BUTTONS ===== */
 .btn-group {
   display: flex;
   gap: 10px;
-  margin-top: 10px;
+  margin-top: 8px;
 }
-.book-btn,
+
+.book-btn {
+  flex: 1;
+  background: #10b981;
+  color: white;
+  border-radius: 8px;
+  padding: 10px;
+  cursor: pointer;
+}
 .detail-btn {
   flex: 1;
-  padding: 10px 16px;
-  border-radius: 10px;
-  border: none;
-  font-weight: 600;
+  background: #1e3a8a;
+  color: white;
+  border-radius: 8px;
+  padding: 10px;
   cursor: pointer;
-  color: #fff;
-  transition: all 0.25s ease;
-}
-.book-btn {
-  background: #10b981;
-}
-.book-btn:hover {
-  background: #059669;
-  transform: scale(1.05);
-}
-.detail-btn {
-  background: #3b82f6;
-}
-.detail-btn:hover {
-  background: #2563eb;
-  transform: scale(1.05);
 }
 
-/* ===== Details Section ===== */
+/* ===== DETAILS ===== */
 .details {
   background: #f3f4f6;
-  padding: 12px;
-  border-radius: 10px;
+  padding: 10px;
+  border-radius: 8px;
   margin-top: 10px;
 }
-.details h4 {
-  color: #1e3a8a;
-  margin-bottom: 6px;
-}
-.details ul {
-  padding-left: 20px;
-  margin-bottom: 6px;
-}
 
-/* ===== Transitions ===== */
-.fade-enter-active,
-.fade-leave-active {
-  transition: all 0.3s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-  transform: translateY(-5px);
-}
-
-/* ===== Error & No Results ===== */
-.error {
-  color: #ef4444;
-  font-weight: 500;
-  text-align: center;
-}
-.no-results {
-  color: #6b7280;
-  text-align: center;
-  margin-top: 20px;
-}
-
-/* ===== Login Prompt Overlay ===== */
+/* ===== LOGIN PROMPT ===== */
 .login-prompt-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0,0,0,0.7);
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 2000;
 }
 .message-box {
-  background: #fff;
+  background: white;
   padding: 28px;
   border-radius: 12px;
   text-align: center;
-  max-width: 400px;
   position: relative;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-}
-.message-box h3 {
-  margin-top: 0;
-  font-size: 20px;
-  color: #ef4444;
-}
-.message-box p {
-  margin-bottom: 20px;
-  color: #333;
 }
 .redirect-btn {
   background: #2563eb;
-  color: #fff;
+  color: white;
+  padding: 10px 18px;
   border: none;
-  padding: 10px 20px;
   border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
 }
-.redirect-btn:hover {
-  background: #1e40af;
-}
+
 .close-btn {
   position: absolute;
-  top: 10px;
   right: 15px;
-  font-size: 24px;
+  top: 10px;
   cursor: pointer;
-  color: #999;
-}
-.prompt-fade-enter-active,
-.prompt-fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-.prompt-fade-enter-from,
-.prompt-fade-leave-to {
-  opacity: 0;
-}
-
-/* ===== Responsive ===== */
-@media (max-width: 768px) {
-  .property-list {
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  }
-  .category-buttons button {
-    padding: 12px 16px;
-    min-width: 140px;
-    font-size: 14px;
-  }
-  .property-img, .no-image { height: 160px; }
-}
-@media (max-width: 480px) {
-  h2 { font-size: 22px; }
-  .property-img, .no-image { height: 140px; }
-  .book-btn, .detail-btn { padding: 8px 12px; font-size: 14px; }
-}
-
-
-.back-btn {
-  font-size: 18px;
-  margin-bottom: 12px;
-  cursor: pointer;
-  color: #1e3a8a;
-  font-weight: 600;
-}
-.back-btn:hover {
-  text-decoration: underline;
 }
 </style>
