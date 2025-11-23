@@ -2,38 +2,38 @@
   <div id="app">
     <div class="public-wrap">
 
-      <!-- ===== Topbar ===== -->
+      <!-- ===== TOPBAR (fixed) ===== -->
       <header class="public-topbar">
         <div class="public-topbar-center">
           <div class="title">{{ t("welcome") }}</div>
         </div>
-
-        <!-- ===== Profile Icon Dropdown ===== -->
-        <div class="profile-container">
-          <div class="profile-icon" @click="toggleMenu">
-            <span>👤</span>
-          </div>
-
-          <!-- Dropdown -->
-          <div v-if="menuOpen" class="dropdown-menu">
-            <button @click="goToLogin">{{ t("login") }}</button>
-            <button @click="logout">Logout</button>
-
-            <select v-model="selectedLang" @change="changeLang">
-              <option value="en">English</option>
-              <option value="am">አማርኛ</option>
-              <option value="om">Afaan Oromoo</option>
-            </select>
-          </div>
-        </div>
       </header>
 
-      <!-- ===== Main Content ===== -->
+      <!-- ===== PROFILE ICON BELOW TOPBAR ===== -->
+      <div class="profile-below-topbar">
+        <div class="profile-icon" @click="toggleMenu">
+          <span>👤</span>
+        </div>
+
+        <!-- Dropdown Menu -->
+        <div v-if="menuOpen" class="dropdown-menu">
+          <button @click="goToLogin">{{ t("login") }}</button>
+          <button @click="logout">Logout</button>
+
+          <select v-model="selectedLang" @change="changeLang">
+            <option value="en">English</option>
+            <option value="am">አማርኛ</option>
+            <option value="om">Afaan Oromoo</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ===== MAIN CONTENT ===== -->
       <main class="public-main">
         <RouterView />
       </main>
 
-      <!-- ===== Footer ===== -->
+      <!-- ===== FOOTER ===== -->
       <footer class="public-footer">
         © {{ new Date().getFullYear() }} LMG Tech System — {{ t("rights") }}
       </footer>
@@ -50,38 +50,45 @@ import { useI18n } from "vue-i18n";
 const router = useRouter();
 const { t, locale } = useI18n();
 
+// Language state
 const selectedLang = ref(localStorage.getItem("lang") || "en");
 locale.value = selectedLang.value;
 
+// Dropdown state
 const menuOpen = ref(false);
 
+// Toggle dropdown
 const toggleMenu = () => {
   menuOpen.value = !menuOpen.value;
 };
 
+// Navigate
 const goToLogin = () => {
   menuOpen.value = false;
   router.push("/login");
 };
 
+// Logout
 const logout = () => {
-  localStorage.removeItem("token");     // remove auth token
-  localStorage.removeItem("user");      // optional: remove stored user data
-  menuOpen.value = false;               // close menu
-  router.push("/login");                // redirect to login
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+  menuOpen.value = false;
+  router.push("/login");
 };
 
+// Language changer
 const changeLang = () => {
   locale.value = selectedLang.value;
   localStorage.setItem("lang", selectedLang.value);
-  menuOpen.value = false; // close dropdown after selecting language
+  menuOpen.value = false;
 };
 
+// Sync language on change
 watch(locale, (lang) => localStorage.setItem("lang", lang));
 </script>
 
 <style>
-/* ===== Global Layout ===== */
+/* ===== Main Page Wrapper ===== */
 .public-wrap {
   min-height: 100vh;
   display: flex;
@@ -89,9 +96,9 @@ watch(locale, (lang) => localStorage.setItem("lang", lang));
   background: white;
 }
 
-/* ===== Topbar ===== */
+/* ===== TOPBAR ===== */
 .public-topbar {
-  position:fixed;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
@@ -101,7 +108,6 @@ watch(locale, (lang) => localStorage.setItem("lang", lang));
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0 20px;
   z-index: 1000;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
@@ -114,49 +120,44 @@ watch(locale, (lang) => localStorage.setItem("lang", lang));
 
 .title {
   font-weight: 700;
-  font-size: 20px;
+  font-size: 22px;
 }
 
-/* ===== Profile Icon ===== */
-.profile-container {
-  position: absolute;
-  right: 20px;       /* EXACT 20px from the right side */
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* ===== PROFILE ICON BELOW TOPBAR ===== */
+.profile-below-topbar {
+  position: fixed;
+  top: 95px;       /* BELOW THE TOPBAR */
+  right: 20px;
+  z-index: 999;
 }
 
 .profile-icon {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   background: white;
   color: #0c5b6fff;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 22px;
   cursor: pointer;
   font-weight: bold;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
-/* ===== Dropdown ===== */
+/* ===== DROPDOWN MENU ===== */
 .dropdown-menu {
-  position: absolute;
-  top: 50px;
-  right: 0;
-  width: 150px;
+  margin-top: 10px;
+  width: 160px;
   background: white;
   color: #111827;
-  border-radius: 8px;
-  padding: 10px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.15);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .dropdown-menu button {
@@ -168,20 +169,25 @@ watch(locale, (lang) => localStorage.setItem("lang", lang));
   cursor: pointer;
 }
 
+.dropdown-menu button:hover {
+  background: #094652;
+}
+
 .dropdown-menu select {
   padding: 6px 8px;
   border-radius: 6px;
   border: 1px solid #ccc;
+  background: #f9fafb;
 }
 
-/* ===== Main Area ===== */
+/* ===== MAIN CONTENT SPACING ===== */
 .public-main {
-  margin-top: 90px;
+  margin-top: 160px;   /* TOPBAR + PROFILE ICON SPACE */
   padding: 20px;
   width: 100%;
 }
 
-/* ===== Footer ===== */
+/* ===== FOOTER ===== */
 .public-footer {
   background: #111827;
   color: white;

@@ -24,11 +24,11 @@
     <!-- Error -->
     <p v-if="error" class="error">{{ error }}</p>
 
-    <!-- Properties Grid -->
+    <!-- Properties List -->
     <div v-if="!loading && properties.length" class="property-list">
       <div
         v-for="(property, index) in properties"
-        :key="index"
+        :key="property._id || index"
         class="property-card"
       >
         <!-- Image -->
@@ -38,9 +38,12 @@
           alt="property"
           class="property-img"
         />
-        <div v-else class="no-image">No Image</div>
 
-        <!-- Property Info -->
+        <div v-else class="no-image">
+          No Image
+        </div>
+
+        <!-- Property Information -->
         <h3>{{ property.name }}</h3>
         <p class="desc">{{ property.description }}</p>
         <p><strong>{{ t("numberOfProperty") }}:</strong> {{ property.numberOfProperty }}</p>
@@ -51,6 +54,7 @@
           <button class="book-btn" @click="bookNow(property)">
             {{ t("bookNow") }}
           </button>
+
           <button class="detail-btn" @click="toggleDetails(index)">
             {{ expanded[index] ? t("hideDetails") : t("viewDetails") }}
           </button>
@@ -60,6 +64,7 @@
         <transition name="fade">
           <div v-if="expanded[index]" class="details">
             <h4>{{ t("merchantInfo") }}</h4>
+
             <p><strong>{{ t("merchantName") }}:</strong> {{ property.merchant.name }}</p>
             <p><strong>{{ t("merchantEmail") }}:</strong> {{ property.merchant.email }}</p>
             <p><strong>{{ t("merchantPhone") }}:</strong> {{ property.merchant.phone }}</p>
@@ -76,18 +81,23 @@
             </ul>
 
             <h4>{{ t("bookings") }}</h4>
+
             <ul v-if="property.bookings?.length">
               <li v-for="(b, i) in property.bookings" :key="i">
-                {{ t("from") }} {{ formatDate(b.startDate) }} {{ t("to") }} {{ formatDate(b.endDate) }} — {{ b.numberOfProperty }} {{ t("booked") }} ({{ b.status }})
+                {{ t("from") }} {{ formatDateTime(b.startDate) }}
+                {{ t("to") }} {{ formatDateTime(b.endDate) }}
+                — {{ b.numberOfProperty }} {{ t("booked") }}
+                ({{ b.status }})
               </li>
             </ul>
+
             <p v-else>{{ t("noBookings") }}</p>
           </div>
         </transition>
       </div>
     </div>
 
-    <!-- No Properties -->
+    <!-- No Results -->
     <p v-if="!loading && !properties.length && !error" class="no-results">
       {{ t("noPropertiesFound") }}
     </p>
@@ -97,8 +107,10 @@
       <div v-if="showLoginPrompt" class="login-prompt-overlay">
         <div class="message-box">
           <span class="close-btn" @click="showLoginPrompt = false">&times;</span>
+
           <h3>{{ t("loginRequiredTitle") }}</h3>
           <p>{{ t("loginRequiredMessage") }}</p>
+
           <button @click="goToLoginAndClearPrompt" class="redirect-btn">
             {{ t("loginOrRegister") }}
           </button>
@@ -131,10 +143,10 @@ const error = ref("");
 const expanded = ref({});
 const showLoginPrompt = ref(false);
 
-// Navigation
+// Route to login
 const goToLogin = () => router.push("/login");
 
-// Category selection
+// Select category
 async function selectCategory(cat) {
   category.value = cat;
   await fetchProperties();
@@ -142,13 +154,14 @@ async function selectCategory(cat) {
 
 // Fetch properties
 async function fetchProperties() {
-  const lang = localStorage.getItem("lang") || "en";
   loading.value = true;
   error.value = "";
   properties.value = [];
 
   try {
+    const lang = localStorage.getItem("lang") || "en";
     const data = await getPropertiesByCategory(category.value, lang);
+
     properties.value = data.properties || [];
   } catch (err) {
     error.value = err.response?.data?.message || t("failedToLoadProperties");
@@ -157,21 +170,21 @@ async function fetchProperties() {
   }
 }
 
-// Toggle property details
+// Toggle details
 function toggleDetails(index) {
   expanded.value[index] = !expanded.value[index];
 }
 
-// Login prompt handler
+// Redirect with login prompt
 function goToLoginAndClearPrompt() {
   showLoginPrompt.value = false;
   goToLogin();
 }
 
+// Booking navigation
 function bookNow(property) {
   const token = localStorage.getItem("token");
 
-  // If NOT logged in → store pending booking and redirect to login
   if (!token) {
     showLoginPrompt.value = true;
 
@@ -180,32 +193,41 @@ function bookNow(property) {
       JSON.stringify({
         assetName: property.name,
         merchantEmail: property.merchant.email,
-        numberOfProperty: property.numberOfProperty, // new
-        merchantAccount: property.merchant.acountnumber // new
+        numberOfProperty: property.numberOfProperty,
+        merchantAccount: property.merchant.acountnumber,
       })
     );
 
     return;
   }
 
-  // IF LOGGED IN → navigate directly to booking page with autofill
   router.push({
     path: "/app/booking",
     query: {
       assetName: property.name,
       merchantEmail: property.merchant.email,
       numberOfProperty: property.numberOfProperty,
-      merchantAccount: property.merchant.acountnumber
+      merchantAccount: property.merchant.acountnumber,
     },
   });
 }
 
+/* ⭐ Correct Full Date + Time ⭐ */
+function formatDateTime(dateStr) {
+  if (!dateStr) return "";
 
-// Format dates
-function formatDate(date) {
-  return new Date(date).toLocaleDateString();
+  const d = new Date(dateStr);
+
+  return d.toLocaleString([], {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 </script>
+
 
 <style scoped>
 /* ========== Page Layout ========== */
@@ -279,6 +301,7 @@ h2 {
   background: #ffffff;
   border-radius: 16px;
   padding: 16px;
+   border: 2px solid black;
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }

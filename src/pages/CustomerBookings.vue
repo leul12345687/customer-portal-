@@ -1,4 +1,4 @@
-<template>
+<template> 
   <div class="page">
     <h2 class="page-title">{{ t("myBookings") }}</h2>
 
@@ -36,7 +36,7 @@
           <p>
             <i class="fa-solid fa-clock"></i>
             <b>{{ t("duration") }}:</b>
-            {{ formatDate(b.startDate) }} → {{ formatDate(b.endDate) }}
+            {{ formatDateTime(b.startDate) }} → {{ formatDateTime(b.endDate) }}
           </p>
 
           <p>
@@ -67,8 +67,8 @@
             </p>
 
             <p>
-              <b>{{ t("duration") }}:</b> {{ formatDate(b.startDate) }} →
-              {{ formatDate(b.endDate) }}
+              <b>{{ t("duration") }}:</b> {{ formatDateTime(b.startDate) }} →
+              {{ formatDateTime(b.endDate) }}
             </p>
 
             <p><b>{{ t("status") }}:</b> {{ b.status }}</p>
@@ -178,8 +178,17 @@ function formatImage(path) {
   return `${API_URL}/${path}`;
 }
 
-function formatDate(dateStr) {
-  return new Date(dateStr).toLocaleDateString();
+/* ⭐ SHOW DATE + HOUR + MINUTE ⭐ */
+function formatDateTime(dateStr) {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  return d.toLocaleString([], {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 onMounted(getMyBookings);
@@ -214,6 +223,7 @@ onMounted(getMyBookings);
   padding: 18px;
   border-radius: 16px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  border: 2px solid black;
   transition: 0.25s ease;
 }
 
@@ -294,7 +304,7 @@ onMounted(getMyBookings);
   background: #f8fafc;
   border-radius: 10px;
   border-left: 4px solid #2563eb;
-  animation: fadeIn 0.3s ease;
+  border: 2px solid black;
 }
 
 /* IMAGE GALLERY */
