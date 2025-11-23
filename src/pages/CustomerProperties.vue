@@ -298,12 +298,12 @@ h2 {
   gap: 20px;
 }
 .property-card {
-  background: #ffffff;
+  background: white;
+  padding: 18px;
   border-radius: 16px;
-  padding: 16px;
-   border: 2px solid black;
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+  border: 2px solid black;
+  transition: 0.25s ease;
 }
 .property-card:hover {
   transform: translateY(-5px);

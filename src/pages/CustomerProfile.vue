@@ -8,7 +8,6 @@
       <p v-if="error" class="error-text">{{ error }}</p>
 
       <form v-if="!loading && profile" class="profile-form" @submit.prevent="updateProfile">
-
         <!-- Profile Image -->
         <div class="image-section">
           <img
@@ -16,7 +15,6 @@
             class="profile-img"
             alt="Profile Photo"
           />
-
           <label class="upload-btn">
             Change Photo
             <input type="file" accept="image/*" hidden @change="onImageSelected" />
@@ -72,7 +70,6 @@ export default {
       previewImage: null,
       successMessage: "",
       defaultImage: "/default-user.png",
-
       form: {
         fullName: "",
         email: "",
@@ -88,7 +85,6 @@ export default {
   },
 
   methods: {
-    // =================== FETCH PROFILE ===================
     async fetchProfile() {
       this.loading = true;
       this.error = null;
@@ -108,25 +104,21 @@ export default {
       }
     },
 
-    // =================== IMAGE SELECTION ===================
     onImageSelected(e) {
       const file = e.target.files[0];
       if (!file) return;
 
-      // Validate file type
       const validTypes = ["image/jpeg", "image/png", "image/jpg"];
       if (!validTypes.includes(file.type)) {
         this.error = "Only JPG, JPEG, or PNG images are allowed!";
         return;
       }
 
-      // Preview
       this.form.profileImage = file;
       this.previewImage = URL.createObjectURL(file);
       this.error = null;
     },
 
-    // =================== UPDATE PROFILE ===================
     async updateProfile() {
       this.updating = true;
       this.successMessage = "";
@@ -134,8 +126,6 @@ export default {
 
       try {
         const formData = new FormData();
-
-        // Append only non-empty fields
         if (this.form.fullName) formData.append("fullName", this.form.fullName);
         if (this.form.email) formData.append("email", this.form.email);
         if (this.form.phonenumber) formData.append("phonenumber", this.form.phonenumber);
@@ -150,7 +140,7 @@ export default {
         this.profile = res.data.updatedCustomer;
         this.previewImage = null;
 
-        // Update form with returned data
+        // Update form
         this.form.fullName = this.profile.fullName;
         this.form.email = this.profile.email;
         this.form.phonenumber = this.profile.phonenumber;
@@ -158,7 +148,6 @@ export default {
         this.form.profileImage = null;
 
       } catch (err) {
-        // Show backend error message if available
         this.error = err.response?.data?.message || "Profile update failed.";
       } finally {
         this.updating = false;
@@ -167,6 +156,9 @@ export default {
   },
 };
 </script>
+
+
+
 
 <style scoped>
 /* ========================= WRAPPER ========================= */

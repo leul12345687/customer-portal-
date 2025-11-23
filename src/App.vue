@@ -132,7 +132,7 @@ watch(locale, (lang) => localStorage.setItem("lang", lang));
 
 /* ===== TOPBAR ===== */
 .public-topbar {
-  position: fixed;
+  position:fixed;
   top: 0;
   left: 0;
   width: 100%;
