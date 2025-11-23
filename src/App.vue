@@ -17,6 +17,7 @@
           <!-- Dropdown -->
           <div v-if="menuOpen" class="dropdown-menu">
             <button @click="goToLogin">{{ t("login") }}</button>
+            <button @click="logout">Logout</button>
 
             <select v-model="selectedLang" @change="changeLang">
               <option value="en">English</option>
@@ -32,6 +33,7 @@
         <RouterView />
       </main>
 
+      <!-- ===== Footer ===== -->
       <footer class="public-footer">
         © {{ new Date().getFullYear() }} LMG Tech System — {{ t("rights") }}
       </footer>
@@ -62,9 +64,17 @@ const goToLogin = () => {
   router.push("/login");
 };
 
+const logout = () => {
+  localStorage.removeItem("token");     // remove auth token
+  localStorage.removeItem("user");      // optional: remove stored user data
+  menuOpen.value = false;               // close menu
+  router.push("/login");                // redirect to login
+};
+
 const changeLang = () => {
   locale.value = selectedLang.value;
   localStorage.setItem("lang", selectedLang.value);
+  menuOpen.value = false; // close dropdown after selecting language
 };
 
 watch(locale, (lang) => localStorage.setItem("lang", lang));
@@ -110,7 +120,7 @@ watch(locale, (lang) => localStorage.setItem("lang", lang));
 /* ===== Profile Icon ===== */
 .profile-container {
   position: absolute;
-  right: 20px; /* ➤ 20px from right */
+  right: 20px;
   top: 50%;
   transform: translateY(-50%);
 }
@@ -152,6 +162,7 @@ watch(locale, (lang) => localStorage.setItem("lang", lang));
   background: #0c5b6fff;
   color: white;
   border: none;
+  cursor: pointer;
 }
 
 .dropdown-menu select {

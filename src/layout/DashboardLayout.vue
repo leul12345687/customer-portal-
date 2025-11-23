@@ -6,16 +6,14 @@
       <div class="sidebar-brand">LMG</div>
 
       <nav class="nav">
-        <RouterLink to="/app/dashboard" active-class="active-link">🏠 {{ t("dashboard") }}</RouterLink>
-        <RouterLink to="/app/property" active-class="active-link">🏢 {{ t("listOfProperties") }}</RouterLink>
-        <RouterLink to="/app/booking" active-class="active-link">📝 {{ t("createBooking") }}</RouterLink>
-        <RouterLink to="/app/my-bookings" active-class="active-link">📋 {{ t("myBookings") }}</RouterLink>
-        <RouterLink to="/app/all-bookings" active-class="active-link">🌍 {{ t("allBookings") }}</RouterLink>
-        <RouterLink to="/app/profile" active-class="active-link">👤 {{ t("profile") }}</RouterLink>
+        <RouterLink to="/app/dashboard" active-class="active-link" @click="closeSidebar">🏠 {{ t("dashboard") }}</RouterLink>
+        <RouterLink to="/app/property" active-class="active-link" @click="closeSidebar">🏢 {{ t("listOfProperties") }}</RouterLink>
+        <RouterLink to="/app/booking" active-class="active-link" @click="closeSidebar">📝 {{ t("createBooking") }}</RouterLink>
+        <RouterLink to="/app/my-bookings" active-class="active-link" @click="closeSidebar">📋 {{ t("myBookings") }}</RouterLink>
+      
+        <RouterLink to="/app/profile" active-class="active-link" @click="closeSidebar">👤 {{ t("profile") }}</RouterLink>
       </nav>
 
-      <!-- 🚪 Logout -->
-      <button class="logout" @click="logout">🔓 {{ t("logout") }}</button>
     </aside>
 
     <!-- 📱 Mobile Sidebar Toggle -->
@@ -40,24 +38,29 @@ const router = useRouter();
 const { t } = useI18n();
 const sidebarOpen = ref(false);
 
+// Close sidebar after selecting any menu item
+const closeSidebar = () => {
+  sidebarOpen.value = false;
+};
+
+// Logout function collapses sidebar and redirects
 const logout = () => {
   localStorage.removeItem("token");
+  sidebarOpen.value = false; // collapse sidebar
   router.push("/login");
 };
 </script>
 
 <style scoped>
-/* ===== Layout Container ===== */
-/* ===== Layout Container ===== */
 .layout {
   display: flex;
   min-height: 100vh;
   background: white;
-  margin: 0;            /* 🚀 Prevents unwanted gap */
-  padding: 0;           /* 🚀 Ensures sidebar touches left edge */
+  margin: 0;
+  padding: 0;
 }
 
-/* ===== Sidebar ===== */
+/* Sidebar */
 .sidebar {
   width: 220px;
   background: #97b4e0ff;
@@ -65,12 +68,12 @@ const logout = () => {
   display: flex;
   flex-direction: column;
   border-right: 1px solid #0e7c6d;
-  position: fixed;       /* 🚀 Ensures it starts from the very left */
+  position: fixed;
   left: 0;
   top: 0;
   bottom: 0;
   transition: transform 0.3s ease;
-  transform: translateX(0); /* Desktop visible */
+  transform: translateX(0); /* desktop visible */
 }
 
 .sidebar-brand {
@@ -101,7 +104,7 @@ const logout = () => {
   color: white;
 }
 
-/* ===== Logout Button ===== */
+/* Logout */
 .logout {
   margin-top: auto;
   padding: 12px;
@@ -115,16 +118,16 @@ const logout = () => {
   background: #dc5a26ff;
 }
 
-/* ===== Content Area ===== */
+/* Content */
 .content {
   flex: 1;
   background: white;
   padding: 20px;
-  margin-left: 220px;     /* 🚀 Keeps content shifted next to sidebar in desktop */
+  margin-left: 220px;
   width: calc(100% - 220px);
 }
 
-/* ===== Mobile Toggle Button ===== */
+/* Mobile Toggle */
 .menu-btn {
   display: none;
   position: fixed;
@@ -139,14 +142,14 @@ const logout = () => {
   z-index: 2000;
 }
 
-/* ===== Mobile Responsive ===== */
+/* Mobile Responsive */
 @media (max-width: 768px) {
   .sidebar {
-    transform: translateX(-100%); /* hidden */
+    transform: translateX(-100%);
   }
 
   .sidebar.open {
-    transform: translateX(0); /* slide in */
+    transform: translateX(0);
   }
 
   .content {
@@ -159,6 +162,4 @@ const logout = () => {
     display: block;
   }
 }
-
-
 </style>
