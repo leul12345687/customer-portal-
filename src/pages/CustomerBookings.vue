@@ -207,7 +207,7 @@ onMounted(getMyBookings);
   text-align: center;
   font-size: 26px;
   color: #1e3a8a;
-  margin-bottom: 20px;
+  margin-bottom: 5px;
 }
 
 /* BOOKING GRID */
@@ -356,10 +356,18 @@ onMounted(getMyBookings);
 .fade-leave-to {
   opacity: 0;
 }
+@media (max-width: 450px) {
+  .booking-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* center the cards horizontally */
+    gap: 16px;
+    padding: 0 10px; /* equal space on left & right */
+  }
 
-/* MOBILE */
-@media (max-width: 480px) {
   .booking-card {
+    width: 100%;
+    max-width: 360px; /* limit card width */
     padding: 14px;
   }
 
