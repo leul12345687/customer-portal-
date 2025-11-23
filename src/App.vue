@@ -157,7 +157,7 @@ watch(locale, (lang) => localStorage.setItem("lang", lang));
 /* RIGHT AREA */
 .topbar-right {
   position: absolute;
-  right: 5%;
+  right: 15%;
   top: 50%;
   transform: translateY(-50%);
   display: flex;
