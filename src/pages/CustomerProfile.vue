@@ -1,47 +1,58 @@
 <template>
-  <div class="profile-container">
-    <h2 class="title">My Profile</h2>
+  <div class="profile-wrapper">
+    <div class="profile-card">
+      <h2>My Profile</h2>
 
-    <div v-if="loading" class="loading">Loading profile...</div>
-    <div v-if="error" class="error">{{ error }}</div>
+      <!-- Loading / Error -->
+      <p v-if="loading" class="loading-text">Loading profile...</p>
+      <p v-if="error" class="error-text">{{ error }}</p>
 
-    <form
-      v-if="!loading && profile"
-      @submit.prevent="updateProfile"
-      class="profile-card"
-    >
-      <!-- Profile Image Display -->
-      <div class="image-section">
-        <img
-          :src="previewImage || profile.profilePictureUrl || defaultImage"
-          alt="Profile Picture"
-          class="profile-img"
-        />
+      <form v-if="!loading && profile" class="profile-form" @submit.prevent="updateProfile">
+        
+        <!-- Profile Image -->
+        <div class="image-section">
+          <img
+            :src="previewImage || profile.profilePictureUrl || defaultImage"
+            class="profile-img"
+            alt="Profile Photo"
+          />
 
-        <label class="upload-btn">
-          Change Photo
-          <input type="file" accept="image/*" @change="onImageSelected" hidden />
-        </label>
-      </div>
+          <label class="upload-btn">
+            Change Photo
+            <input type="file" accept="image/*" hidden @change="onImageSelected" />
+          </label>
+        </div>
 
-      <!-- Full Name -->
-      <label>Full Name</label>
-      <input v-model="form.fullName" type="text" required />
+        <!-- Full Name -->
+        <div class="form-group">
+          <label>Full Name</label>
+          <input type="text" v-model="form.fullName" required />
+        </div>
 
-      <!-- Email -->
-      <label>Email</label>
-      <input v-model="form.email" type="email" required />
+        <!-- Email -->
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" v-model="form.email" required />
+        </div>
 
-      <!-- Phone -->
-      <label>Phone Number</label>
-      <input v-model="form.phonenumber" type="text" required />
+        <!-- Phone -->
+        <div class="form-group">
+          <label>Phone Number</label>
+          <input type="text" v-model="form.phonenumber" required />
+        </div>
 
-      <!-- Address -->
-      <label>Address</label>
-      <input v-model="form.address" type="text" required />
+        <!-- Address -->
+        <div class="form-group">
+          <label>Address</label>
+          <input type="text" v-model="form.address" required />
+        </div>
 
-      <button type="submit" class="save-btn">Save Changes</button>
-    </form>
+        <button type="submit" class="save-btn">Save Changes</button>
+      </form>
+
+      <!-- Messages -->
+      <p v-if="successMessage" class="success-msg">{{ successMessage }}</p>
+    </div>
   </div>
 </template>
 
@@ -55,15 +66,15 @@ export default {
       error: null,
       profile: null,
       previewImage: null,
+      successMessage: "",
       defaultImage: "/default-user.png",
 
-      // Fields must match backend EXACTLY
       form: {
         fullName: "",
         email: "",
         phonenumber: "",
         address: "",
-        profileImage: null, // uploading file
+        profileImage: null,
       },
     };
   },
@@ -78,20 +89,20 @@ export default {
         const res = await api.get("/customer/profile");
         this.profile = res.data;
 
-        // populate form
+        // Prefill form
         this.form.fullName = this.profile.fullName;
         this.form.email = this.profile.email;
         this.form.phonenumber = this.profile.phonenumber;
         this.form.address = this.profile.address;
       } catch (err) {
-        this.error = "Failed to load profile.";
+        this.error = "Unable to load profile.";
       } finally {
         this.loading = false;
       }
     },
 
-    onImageSelected(event) {
-      const file = event.target.files[0];
+    onImageSelected(e) {
+      const file = e.target.files[0];
       if (!file) return;
 
       this.form.profileImage = file;
@@ -101,14 +112,11 @@ export default {
     async updateProfile() {
       try {
         const formData = new FormData();
-
-        // MUST MATCH backend allowed fields
         formData.append("fullName", this.form.fullName);
         formData.append("email", this.form.email);
         formData.append("phonenumber", this.form.phonenumber);
         formData.append("address", this.form.address);
 
-        // MUST match FileInterceptor('profileImage')
         if (this.form.profileImage) {
           formData.append("profileImage", this.form.profileImage);
         }
@@ -117,40 +125,59 @@ export default {
           headers: { "Content-Type": "multipart/form-data" },
         });
 
-        alert("Profile updated successfully!");
-
-        // Replace with updated customer
+        this.successMessage = "Profile updated successfully!";
         this.profile = res.data.updatedCustomer;
         this.previewImage = null;
       } catch (err) {
-        alert("Profile update failed.");
+        this.error = "Profile update failed.";
       }
     },
   },
 };
 </script>
 
-<style>
-.profile-container {
-  max-width: 450px;
-  margin: auto;
-  padding: 20px;
+<style scoped>
+/* ===========================
+    WRAPPER (CENTERED LAYOUT)
+   =========================== */
+.profile-wrapper {
+  width: 100%;
+  min-height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 20px 16px;
+  background: white;
 }
 
-.title {
+/* ===========================
+        CARD
+   =========================== */
+.profile-card {
+  width: 100%;
+  max-width: 480px;
+
+  background: white;
+  padding: 24px;
+
+  border-radius: 18px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+
+  animation: fadeIn 0.3s ease-out;
+}
+
+.profile-card h2 {
   text-align: center;
-  margin-bottom: 15px;
-  font-weight: bold;
+  margin-bottom: 20px;
+  font-weight: 700;
   font-size: 22px;
 }
 
-.profile-card {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 0 12px rgba(0,0,0,0.1);
-}
-
+/* ===========================
+        IMAGE SECTION
+   =========================== */
 .image-section {
   text-align: center;
   margin-bottom: 20px;
@@ -161,38 +188,105 @@ export default {
   height: 140px;
   border-radius: 50%;
   object-fit: cover;
+  border: 3px solid #d1d9e6;
 }
 
 .upload-btn {
   display: inline-block;
-  background: #1976D2;
-  color: white;
-  padding: 8px 12px;
-  border-radius: 6px;
   margin-top: 10px;
+
+  background: #1976d2;
+  color: white;
+
+  padding: 8px 14px;
+  border-radius: 8px;
+
   cursor: pointer;
+  font-size: 14px;
 }
 
-input {
-  width: 100%;
-  padding: 10px;
-  margin-bottom: 14px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
+/* ===========================
+        FORM CONTROLS
+   =========================== */
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
 }
 
+.form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-group label {
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.form-group input {
+  padding: 12px;
+  border-radius: 10px;
+
+  border: 1px solid #c7d1e0;
+  font-size: 15px;
+
+  transition: 0.25s ease-in-out;
+}
+
+.form-group input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+  outline: none;
+}
+
+/* ===========================
+        BUTTON
+   =========================== */
 .save-btn {
   width: 100%;
-  padding: 12px;
-  background: #4CAF50;
+  padding: 14px;
+
+  background: #2563eb;
   color: white;
+
   border: none;
-  border-radius: 6px;
+  border-radius: 10px;
+
   font-size: 16px;
+  font-weight: 600;
+
+  cursor: pointer;
+  transition: 0.25s;
 }
 
-.error {
-  color: red;
+.save-btn:hover {
+  background: #1d4ed8;
+}
+
+/* ===========================
+        MESSAGES
+   =========================== */
+.success-msg {
+  margin-top: 15px;
   text-align: center;
+  color: #10b981;
+  font-weight: 600;
+}
+
+.error-text {
+  text-align: center;
+  color: #dc2626;
+}
+
+/* Fade animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+  }
 }
 </style>

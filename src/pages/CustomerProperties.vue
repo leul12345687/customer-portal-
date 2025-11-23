@@ -210,8 +210,8 @@ function formatDate(date) {
 <style scoped>
 /* ========== Page Layout ========== */
 .properties-page {
-  padding: 24px;
-  background: #f3f4f6;
+  padding: 10px;
+  background: white;
   min-height: 100vh;
 }
 h2 {

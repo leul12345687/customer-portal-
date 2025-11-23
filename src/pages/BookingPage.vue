@@ -205,7 +205,7 @@ async function handleBooking() {
   align-items: flex-start;
 
   padding: 20px 16px;
-  background-color: #f2f4f7;
+  background-color: white;
   box-sizing: border-box;
 }
 
