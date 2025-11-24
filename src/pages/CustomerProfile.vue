@@ -3,18 +3,13 @@
     <div class="profile-card">
       <h2>My Profile</h2>
 
-      <!-- Loading / Error -->
       <p v-if="loading" class="loading-text">Loading profile...</p>
       <p v-if="error" class="error-text">{{ error }}</p>
 
-      <form v-if="!loading && profile" class="profile-form" @submit.prevent="updateProfile">
+      <form v-if="!loading && profile" @submit.prevent="updateProfile" class="profile-form">
         <!-- Profile Image -->
         <div class="image-section">
-          <img
-            :src="previewImage || profile.profilePictureUrl || defaultImage"
-            class="profile-img"
-            alt="Profile Photo"
-          />
+          <img :src="previewImage || profile.profilePictureUrl || defaultImage" class="profile-img" alt="Profile Photo" />
           <label class="upload-btn">
             Change Photo
             <input type="file" accept="image/*" hidden @change="onImageSelected" />
@@ -51,14 +46,13 @@
         </button>
       </form>
 
-      <!-- Messages -->
       <p v-if="successMessage" class="success-msg">{{ successMessage }}</p>
     </div>
   </div>
 </template>
 
 <script>
-import api from "../services/customerprofile.js";
+import api from "../services/api.js";
 
 export default {
   data() {
@@ -121,15 +115,15 @@ export default {
 
     async updateProfile() {
       this.updating = true;
-      this.successMessage = "";
       this.error = null;
+      this.successMessage = "";
 
       try {
         const formData = new FormData();
-        if (this.form.fullName) formData.append("fullName", this.form.fullName);
-        if (this.form.email) formData.append("email", this.form.email);
-        if (this.form.phonenumber) formData.append("phonenumber", this.form.phonenumber);
-        if (this.form.address) formData.append("address", this.form.address);
+        formData.append("fullName", this.form.fullName);
+        formData.append("email", this.form.email);
+        formData.append("phonenumber", this.form.phonenumber);
+        formData.append("address", this.form.address);
         if (this.form.profileImage) formData.append("profileImage", this.form.profileImage);
 
         const res = await api.patch("/customer/profile", formData, {
@@ -140,13 +134,8 @@ export default {
         this.profile = res.data.updatedCustomer;
         this.previewImage = null;
 
-        // Update form
-        this.form.fullName = this.profile.fullName;
-        this.form.email = this.profile.email;
-        this.form.phonenumber = this.profile.phonenumber;
-        this.form.address = this.profile.address;
+        // Reset form image
         this.form.profileImage = null;
-
       } catch (err) {
         this.error = err.response?.data?.message || "Profile update failed.";
       } finally {
@@ -156,8 +145,6 @@ export default {
   },
 };
 </script>
-
-
 
 
 <style scoped>
