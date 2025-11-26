@@ -111,19 +111,33 @@
       <template v-else>
         <h2>Payment Required</h2>
 
-        <div class="payment-box">
-          <p><strong>Amount:</strong> {{ paymentInfo.totalPrice }} ETB</p>
-          <p><strong>Bank:</strong> Commercial Bank of Ethiopia</p>
-          <p><strong>Account Number:</strong> {{ paymentInfo.accountNumber }}</p>
+       <div class="payment-box">
+  <p>
+    <strong>Amount:</strong>
+    {{ paymentInfo.amount ?? "—" }} ETB
+  </p>
 
-          <p><strong>Payment Reference:</strong></p>
-          <div class="reference">{{ paymentInfo.paymentReference }}</div>
+  <p>
+    <strong>Bank:</strong>
+    {{ paymentInfo.bank || "Commercial Bank of Ethiopia" }}
+  </p>
 
-          <p>
-            <strong>Pay Before:</strong>
-            {{ formatDate(paymentInfo.expiresAt) }}
-          </p>
-        </div>
+  <p>
+    <strong>Account Number:</strong>
+    {{ paymentInfo.accountNumber || "—" }}
+  </p>
+
+  <p><strong>Payment Reference:</strong></p>
+  <div class="reference">
+    {{ paymentInfo.paymentReference }}
+  </div>
+
+  <p>
+    <strong>Pay Before:</strong>
+    {{ paymentInfo.expiresAt ? formatDate(paymentInfo.expiresAt) : "—" }}
+  </p>
+</div>
+
 
         <p class="success-msg">
           {{ paymentInfo.message }}
