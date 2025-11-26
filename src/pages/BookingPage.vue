@@ -112,19 +112,27 @@
         <h2>Payment Required</h2>
 
   <div class="payment-box">
- <p><strong>Amount:</strong> {{ paymentInfo?.totalPrice || '—' }} ETB</p>
-<p><strong>Account Number:</strong> {{ paymentInfo?.accountNumber || '—' }}</p>
-<p><strong>Payment Reference:</strong> {{ paymentInfo?.paymentReference || '—' }}</p>
-<p><strong>Pay Before:</strong> {{ paymentInfo?.expiresAt ? formatDate(paymentInfo.expiresAt) : '—' }}</p>
+  <p><b>Total Amount:</b> {{ paymentInfo.totalPrice }} ETB</p>
+        <p><b>Net Amount:</b> {{ paymentInfo.netAmount }} ETB</p>
+        <p><b>VAT ({{ paymentInfo.vatRate * 100 }}%):</b> {{ paymentInfo.vatAmount }} ETB</p>
 
-  <div class="reference">
-    {{ paymentInfo.paymentReference }}
-  </div>
+        <hr />
 
-  <p>
-    <strong>Pay Before:</strong>
-    {{ paymentInfo.expiresAt ? formatDate(paymentInfo.expiresAt) : "—" }}
-  </p>
+        <p><b>Bank:</b> Commercial Bank of Ethiopia</p>
+        <p><b>Account Number:</b> {{ paymentInfo.accountNumber }}</p>
+        <p><b>Payment Reference:</b> {{ paymentInfo.paymentReference }}</p>
+        <p><b>Pay Before:</b> {{ formatDate(paymentInfo.expiresAt) }}</p>
+
+        <hr />
+
+        <p>{{ paymentInfo.message }}</p>
+
+        <p class="warning">
+          Use the exact payment reference. Booking expires if unpaid.
+        </p>
+
+
+  
 </div>
 
 
