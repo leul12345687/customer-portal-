@@ -1,4 +1,4 @@
-<template> 
+<template>
   <div id="app">
     <div class="public-wrap">
 
@@ -10,7 +10,7 @@
           <div class="title">{{ t("welcome") }}</div>
         </div>
 
-        <!-- RIGHT SIDE (PROFILE + MENU) -->
+        <!-- RIGHT SIDE -->
         <div class="topbar-right" ref="dropdownArea">
 
           <!-- PROFILE ICON -->
@@ -18,31 +18,39 @@
             <span>👤</span>
           </div>
 
-          <!-- Animated Dropdown -->
+          <!-- DROPDOWN -->
           <transition name="fade-slide">
             <div v-if="menuOpen" class="dropdown-menu">
 
-              <!-- User Name -->
+              <!-- USER INFO -->
               <div class="user-info">
-                <strong>{{ userName }}</strong>
+                <strong>{{ isAuthenticated ? userName : t("guest") }}</strong>
               </div>
 
-              <button @click="goToLogin">{{ t("login") }}</button>
-              <button @click="logout">Logout</button>
+              <!-- LOGIN (only if NOT authenticated) -->
+              <button v-if="!isAuthenticated" @click="goToLogin">
+                {{ t("login") }}
+              </button>
 
+              <!-- LOGOUT (only if authenticated & token valid) -->
+              <button v-if="isAuthenticated" @click="logout">
+                {{ t("logout") }}
+              </button>
+
+              <!-- LANGUAGE -->
               <select v-model="selectedLang" @change="changeLang">
                 <option value="en">English</option>
                 <option value="am">አማርኛ</option>
                 <option value="om">Afaan Oromoo</option>
               </select>
+
             </div>
           </transition>
 
         </div>
-
       </header>
 
-      <!-- MAIN CONTENT -->
+      <!-- MAIN -->
       <main class="public-main">
         <RouterView />
       </main>
@@ -57,23 +65,22 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 
 const router = useRouter();
 const { t, locale } = useI18n();
 
-// User name from localStorage
-const userName = ref("");
-const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
-userName.value = storedUser?.name || "Guest";
-
-// Language
+/* ===============================
+   LANGUAGE
+================================ */
 const selectedLang = ref(localStorage.getItem("lang") || "en");
 locale.value = selectedLang.value;
 
-// Dropdown menu open/close
+/* ===============================
+   DROPDOWN
+================================ */
 const menuOpen = ref(false);
 const dropdownArea = ref(null);
 
@@ -81,9 +88,8 @@ const toggleMenu = () => {
   menuOpen.value = !menuOpen.value;
 };
 
-// Close on outside click
-const handleClickOutside = (event) => {
-  if (dropdownArea.value && !dropdownArea.value.contains(event.target)) {
+const handleClickOutside = (e) => {
+  if (dropdownArea.value && !dropdownArea.value.contains(e.target)) {
     menuOpen.value = false;
   }
 };
@@ -91,7 +97,42 @@ const handleClickOutside = (event) => {
 onMounted(() => document.addEventListener("click", handleClickOutside));
 onBeforeUnmount(() => document.removeEventListener("click", handleClickOutside));
 
-// Navigation
+/* ===============================
+   AUTH LOGIC (IMPORTANT PART)
+================================ */
+
+// Decode JWT safely
+function decodeToken(token) {
+  try {
+    const payload = token.split(".")[1];
+    return JSON.parse(atob(payload));
+  } catch {
+    return null;
+  }
+}
+
+// Check token validity
+const isAuthenticated = computed(() => {
+  const token = localStorage.getItem("token");
+  if (!token) return false;
+
+  const decoded = decodeToken(token);
+  if (!decoded?.exp) return false;
+
+  const now = Math.floor(Date.now() / 1000);
+  return decoded.exp > now; // ✅ un-expired token
+});
+
+// Username (only when authenticated)
+const userName = computed(() => {
+  if (!isAuthenticated.value) return t("guest");
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  return user?.name || "User";
+});
+
+/* ===============================
+   ACTIONS
+================================ */
 const goToLogin = () => {
   menuOpen.value = false;
   router.push("/login");
@@ -112,6 +153,7 @@ const changeLang = () => {
 
 watch(locale, (lang) => localStorage.setItem("lang", lang));
 </script>
+
 
 <style>
 /* ===== PAGE WRAPPER ===== */
