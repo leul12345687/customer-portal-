@@ -244,82 +244,158 @@ function formatDate(date) {
 }
 </script>
 
-<style scoped>
-/* === SAME STYLES + SMALL ADDITIONS === */
-
+<style scoped>/* ===============================
+   PAGE WRAPPER (MOBILE FIRST)
+================================ */
 .booking-wrapper {
   width: 100%;
   min-height: 100vh;
   display: flex;
   justify-content: center;
-  padding: 20px 16px;
+  align-items: flex-start;
+  padding: 16px;
+  background: #f1f5f9;
 }
 
+/* ===============================
+   BOOKING CARD
+================================ */
 .booking-card {
   width: 100%;
   max-width: 480px;
-  background: white;
-  padding: 24px;
+  background: #ffffff;
+  padding: 20px;
   border-radius: 18px;
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
 }
 
+/* ===============================
+   FORM
+================================ */
 .booking-form {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 16px;
 }
 
+/* Rows stack by default (mobile) */
 .form-row {
   display: flex;
-  gap: 14px;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.half {
-  flex: 1;
-}
-
-input, select {
-  padding: 12px;
+/* Inputs */
+input,
+select {
+  width: 100%;
+  padding: 14px 12px;
   border-radius: 10px;
   border: 1px solid #c7d1e0;
+  font-size: 15px;
+  outline: none;
+  background: #ffffff;
 }
 
+input:focus,
+select:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
+}
+
+/* ===============================
+   BUTTON
+================================ */
 button {
+  width: 100%;
   padding: 14px;
   background: #2563eb;
-  color: white;
-  border-radius: 10px;
+  color: #ffffff;
+  border-radius: 12px;
   font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+  transition: background 0.2s ease, transform 0.1s ease;
 }
 
+button:hover {
+  background: #1e40af;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+/* ===============================
+   PAYMENT BOX
+================================ */
 .payment-box {
   border: 2px dashed #2563eb;
   padding: 16px;
-  border-radius: 12px;
+  border-radius: 14px;
   background: #f8fafc;
+  text-align: center;
 }
 
+/* Reference code */
 .reference {
   font-weight: 700;
   font-size: 18px;
-  letter-spacing: 1px;
+  letter-spacing: 1.2px;
+  margin-top: 8px;
+  color: #1e3a8a;
 }
 
+/* ===============================
+   MESSAGES
+================================ */
 .success-msg {
   color: #10b981;
   font-weight: 600;
   margin-top: 12px;
+  text-align: center;
 }
 
 .error-msg {
   color: #dc2626;
   font-weight: 600;
+  text-align: center;
 }
 
+/* Info text */
 .info {
   margin-top: 10px;
   font-size: 14px;
   color: #374151;
+  text-align: center;
 }
+
+/* ===============================
+   TABLET & DESKTOP (>= 640px)
+================================ */
+@media (min-width: 640px) {
+  .booking-card {
+    padding: 24px;
+  }
+
+  /* Side-by-side fields on larger screens */
+  .form-row {
+    flex-direction: row;
+  }
+
+  .half {
+    flex: 1;
+  }
+}
+
+/* ===============================
+   LARGE DESKTOP (>= 1024px)
+================================ */
+@media (min-width: 1024px) {
+  .booking-wrapper {
+    align-items: center;
+  }
+}
+
 </style>
