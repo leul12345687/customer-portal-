@@ -1,14 +1,22 @@
 <template>
   <div class="properties-page">
 
-    <!-- ================= BACK ARROW ================= -->
+    <!-- ================= BACK BUTTON ================= -->
     <div v-if="!showCategories" class="back-container">
       <button class="back-btn" @click="goBack">
         ← {{ t("back") }}
       </button>
     </div>
 
-    <!-- ================= CATEGORY PAGE ================= -->
+    <!-- ================= SELECTED CATEGORY TITLE ================= -->
+    <h3
+      v-if="selectedCategoryLabel && (showProperties || showCustomCategories)"
+      class="selected-category-title"
+    >
+      {{ selectedCategoryLabel }}
+    </h3>
+
+    <!-- ================= MAIN CATEGORY SELECTION ================= -->
     <section v-if="showCategories" class="category-section">
       <h2>{{ t("Select availableProperties by category") }}</h2>
 
@@ -23,11 +31,14 @@
       </div>
     </section>
 
-    <!-- ================= CUSTOM CATEGORY PAGE (OTHER) ================= -->
+    <!-- ================= CUSTOM CATEGORY (OTHER) ================= -->
     <section v-if="showCustomCategories" class="category-section">
       <h2>{{ t("Select Custom Category") }}</h2>
 
-      <div v-if="customCategories.length" class="category-buttons">
+      <div
+        v-if="customCategories.length"
+        class="custom-category-buttons"
+      >
         <button
           v-for="custom in customCategories"
           :key="custom"
@@ -37,12 +48,12 @@
         </button>
       </div>
 
-      <p v-else class="no-results">
+      <p v-else class="no-custom-category">
         {{ t("noCustomCategoryFound") }}
       </p>
     </section>
 
-    <!-- ================= PROPERTIES PAGE ================= -->
+    <!-- ================= PROPERTIES LIST ================= -->
     <section v-if="showProperties">
 
       <!-- Loading -->
@@ -52,9 +63,11 @@
       </div>
 
       <!-- Error -->
-      <p v-if="error" class="error">{{ error }}</p>
+      <p v-if="error" class="error">
+        {{ error }}
+      </p>
 
-      <!-- Properties List -->
+      <!-- Property Cards -->
       <div
         v-if="!loading && properties.length"
         class="property-list"
@@ -71,6 +84,7 @@
             class="property-img"
             alt="Property image"
           />
+
           <div v-else class="no-image">
             {{ t("noImage") }}
           </div>
@@ -89,7 +103,7 @@
             {{ property.category }}
           </p>
 
-          <!-- Action Buttons -->
+          <!-- Actions -->
           <div class="btn-group">
             <button class="book-btn" @click="bookNow(property)">
               {{ t("bookNow") }}
@@ -149,14 +163,16 @@
     <transition name="prompt-fade">
       <div v-if="showLoginPrompt" class="login-prompt-overlay">
         <div class="message-box">
-          <span class="close-btn" @click="showLoginPrompt = false">&times;</span>
+          <span class="close-btn" @click="showLoginPrompt = false">
+            &times;
+          </span>
 
           <h3>{{ t("loginRequiredTitle") }}</h3>
           <p>{{ t("loginRequiredMessage") }}</p>
 
           <button
-            @click="goToLoginAndClearPrompt"
             class="redirect-btn"
+            @click="goToLoginAndClearPrompt"
           >
             {{ t("loginOrRegister") }}
           </button>
@@ -166,9 +182,8 @@
 
   </div>
 </template>
-
 <script setup>
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { getPropertiesByCategory } from "../services/propertyService.js";
@@ -195,6 +210,7 @@ const categories = [
 ];
 
 const category = ref("");
+const selectedCustomCategory = ref(""); // ⭐ NEW
 const properties = ref([]);
 const allOtherProperties = ref([]);
 const customCategories = ref([]);
@@ -204,10 +220,25 @@ const error = ref("");
 const expanded = ref({});
 
 /* =====================================================
+   SELECTED CATEGORY TITLE (FOR UI)
+===================================================== */
+const selectedCategoryLabel = computed(() => {
+  if (selectedCustomCategory.value) {
+    return selectedCustomCategory.value;
+  }
+
+  const found = categories.find(
+    (c) => c.value === category.value
+  );
+  return found ? found.label : "";
+});
+
+/* =====================================================
    CATEGORY SELECTION
 ===================================================== */
 async function selectCategory(cat) {
   category.value = cat;
+  selectedCustomCategory.value = "";
   showCategories.value = false;
 
   if (cat === "Other") {
@@ -232,7 +263,8 @@ async function fetchProperties(cat) {
     properties.value = res.properties || [];
   } catch (err) {
     error.value =
-      err.response?.data?.message || t("failedToLoadProperties");
+      err.response?.data?.message ||
+      t("failedToLoadProperties");
   } finally {
     loading.value = false;
   }
@@ -252,7 +284,6 @@ async function loadCustomCategories() {
     const res = await getPropertiesByCategory("Other", lang);
     allOtherProperties.value = res.properties || [];
 
-    // Extract unique customCategory values
     const set = new Set();
     allOtherProperties.value.forEach((p) => {
       if (p.customCategory) set.add(p.customCategory);
@@ -261,7 +292,8 @@ async function loadCustomCategories() {
     customCategories.value = [...set];
   } catch (err) {
     error.value =
-      err.response?.data?.message || t("failedToLoadProperties");
+      err.response?.data?.message ||
+      t("failedToLoadProperties");
   } finally {
     loading.value = false;
   }
@@ -271,6 +303,8 @@ async function loadCustomCategories() {
    SELECT CUSTOM CATEGORY
 ===================================================== */
 function selectCustomCategory(customCat) {
+  selectedCustomCategory.value = customCat;
+
   properties.value = allOtherProperties.value.filter(
     (p) => p.customCategory === customCat
   );
@@ -288,6 +322,7 @@ function goBack() {
   showProperties.value = false;
 
   category.value = "";
+  selectedCustomCategory.value = "";
   properties.value = [];
   expanded.value = {};
   error.value = "";
@@ -352,11 +387,45 @@ function formatDateTime(dateStr) {
   });
 }
 </script>
+
 <style scoped>
 /* ===== BACK BUTTON ===== */
+
+/* ===== SELECTED CATEGORY TITLE ===== */
+.selected-category-title {
+  text-align: center;
+  margin: 8px auto 18px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1e3a8a;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  max-width: 90%;
+}
+
+/* subtle divider for clarity */
+.selected-category-title::after {
+  content: "";
+  display: block;
+  width: 60px;
+  height: 3px;
+  background: #1e3a8a;
+  margin: 6px auto 0;
+  border-radius: 2px;
+}
+
+/* ===== MOBILE OPTIMIZATION ===== */
+@media (max-width: 480px) {
+  .selected-category-title {
+    font-size: 16px;
+    margin-bottom: 14px;
+  }
+}
+
 .back-container {
   margin-bottom: 15px;
 }
+
 .back-btn {
   background: #1e3a8a;
   color: white;
