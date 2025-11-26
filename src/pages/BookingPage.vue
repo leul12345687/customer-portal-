@@ -1,98 +1,140 @@
 <template>
   <div class="booking-wrapper">
     <div class="booking-card">
-      <h2>{{ t("bookingTitle") }}</h2>
 
-      <form @submit.prevent="handleBooking" class="booking-form">
-        <!-- Property Name -->
-        <div class="form-group">
-          <label>{{ t("propertyName") }}</label>
-          <input
-            v-model="form.assetName"
-            type="text"
-            :placeholder="t('enterProperty')"
-            required
-            readonly
-          />
-        </div>
+      <!-- ========================= -->
+      <!-- BOOKING FORM (UNCHANGED) -->
+      <!-- ========================= -->
+      <template v-if="!paymentInfo">
+        <h2>{{ t("bookingTitle") }}</h2>
 
-        <!-- Merchant Email -->
-        <div class="form-group">
-          <label>{{ t("merchantEmail") }}</label>
-          <input
-            v-model="form.merchantEmail"
-            type="email"
-            placeholder="example@merchant.com"
-            required
-            readonly
-          />
-        </div>
+        <form @submit.prevent="handleBooking" class="booking-form">
 
-        <!-- Start and End Date/Time -->
-        <div class="form-row">
-          <div class="form-group half">
-            <label>{{ t("checkIn") }}</label>
+          <!-- Property Name -->
+          <div class="form-group">
+            <label>{{ t("propertyName") }}</label>
             <input
-              v-model="form.startDate"
-              type="datetime-local"
+              v-model="form.assetName"
+              type="text"
+              :placeholder="t('enterProperty')"
+              required
+              readonly
+            />
+          </div>
+
+          <!-- Merchant Email -->
+          <div class="form-group">
+            <label>{{ t("merchantEmail") }}</label>
+            <input
+              v-model="form.merchantEmail"
+              type="email"
+              placeholder="example@merchant.com"
+              required
+              readonly
+            />
+          </div>
+
+          <!-- Start / End -->
+          <div class="form-row">
+            <div class="form-group half">
+              <label>{{ t("checkIn") }}</label>
+              <input
+                v-model="form.startDate"
+                type="datetime-local"
+                required
+                @change="autoAdjustEndDate"
+              />
+            </div>
+
+            <div class="form-group half">
+              <label>{{ t("checkOut") }}</label>
+              <input
+                v-model="form.endDate"
+                type="datetime-local"
+                required
+              />
+            </div>
+          </div>
+
+          <!-- Number -->
+          <div class="form-group">
+            <label>{{ t("numberOfProperty") }}</label>
+            <input
+              v-model.number="form.numberOfProperty"
+              type="number"
+              min="1"
+              required
+            />
+          </div>
+
+          <!-- Interval -->
+          <div class="form-group">
+            <label>{{ t("timeInterval") }}</label>
+            <select
+              v-model="form.timeInterval"
               required
               @change="autoAdjustEndDate"
-            />
+            >
+              <option value="hour">{{ t("hour") }}</option>
+              <option value="day">{{ t("day") }}</option>
+              <option value="week">{{ t("week") }}</option>
+              <option value="month">{{ t("month") }}</option>
+              <option value="year">{{ t("year") }}</option>
+            </select>
           </div>
 
-          <div class="form-group half">
-            <label>{{ t("checkOut") }}</label>
+          <!-- Deposit -->
+          <div class="form-group">
+            <label>{{ t("securityDeposit") }}</label>
             <input
-              v-model="form.endDate"
-              type="datetime-local"
-              required
+              v-model.number="form.securityDeposit"
+              type="number"
+              min="0"
+              :placeholder="t('optionalDeposit')"
             />
           </div>
+
+          <!-- Submit -->
+          <button type="submit" :disabled="loading">
+            {{ loading ? t("submitting") : t("submitBooking") }}
+          </button>
+        </form>
+
+        <!-- Feedback -->
+        <p v-if="message" class="success-msg">{{ message }}</p>
+        <p v-if="error" class="error-msg">{{ error }}</p>
+      </template>
+
+      <!-- ========================= -->
+      <!-- PAYMENT INFO (NEW) -->
+      <!-- ========================= -->
+      <template v-else>
+        <h2>Payment Required</h2>
+
+        <div class="payment-box">
+          <p><strong>Amount:</strong> {{ paymentInfo.totalPrice }} ETB</p>
+          <p><strong>Bank:</strong> Commercial Bank of Ethiopia</p>
+          <p><strong>Account Number:</strong> {{ paymentInfo.accountNumber }}</p>
+
+          <p><strong>Payment Reference:</strong></p>
+          <div class="reference">{{ paymentInfo.paymentReference }}</div>
+
+          <p>
+            <strong>Pay Before:</strong>
+            {{ formatDate(paymentInfo.expiresAt) }}
+          </p>
         </div>
 
-        <!-- Number of Property -->
-        <div class="form-group">
-          <label>{{ t("numberOfProperty") }}</label>
-          <input
-            v-model.number="form.numberOfProperty"
-            type="number"
-            min="1"
-            required
-          />
-        </div>
+        <p class="success-msg">
+          {{ paymentInfo.message }}
+        </p>
 
-        <!-- Time Interval -->
-        <div class="form-group">
-          <label>{{ t("timeInterval") }}</label>
-          <select v-model="form.timeInterval" required @change="autoAdjustEndDate">
-            <option value="hour">{{ t("hour") }}</option>
-            <option value="day">{{ t("day") }}</option>
-            <option value="week">{{ t("week") }}</option>
-            <option value="month">{{ t("month") }}</option>
-            <option value="year">{{ t("year") }}</option>
-          </select>
-        </div>
+        <p class="info">
+          ⚠️ Use the exact reference when paying.  
+          Booking will expire automatically if unpaid.
+        </p>
+      </template>
 
-        <!-- Security Deposit -->
-        <div class="form-group">
-          <label>{{ t("securityDeposit") }}</label>
-          <input
-            v-model.number="form.securityDeposit"
-            type="number"
-            min="0"
-            :placeholder="t('optionalDeposit')"
-          />
-        </div>
-
-        <!-- Submit Button -->
-        <button type="submit" :disabled="loading">
-          {{ loading ? t("submitting") : t("submitBooking") }}
-        </button>
-      </form>
-
-      <!-- Feedback -->
-      <p v-if="message" class="success-msg">{{ message }}</p>
-      <p v-if="error" class="error-msg">{{ error }}</p>
     </div>
   </div>
 </template>
@@ -120,14 +162,17 @@ const message = ref("");
 const error = ref("");
 const loading = ref(false);
 
-// Prefill form from property list
+// ✅ NEW: payment response holder
+const paymentInfo = ref(null);
+
+// Prefill from route
 onMounted(() => {
   const { assetName, merchantEmail } = route.query;
   if (assetName) form.value.assetName = assetName;
   if (merchantEmail) form.value.merchantEmail = merchantEmail;
 });
 
-// Automatically adjust end date/time based on interval
+// Auto adjust end date
 function autoAdjustEndDate() {
   if (!form.value.startDate) return;
 
@@ -135,24 +180,13 @@ function autoAdjustEndDate() {
   const end = new Date(start);
 
   switch (form.value.timeInterval) {
-    case "hour":
-      end.setHours(end.getHours() + 1);
-      break;
-    case "day":
-      end.setDate(end.getDate() + 1);
-      break;
-    case "week":
-      end.setDate(end.getDate() + 7);
-      break;
-    case "month":
-      end.setMonth(end.getMonth() + 1);
-      break;
-    case "year":
-      end.setFullYear(end.getFullYear() + 1);
-      break;
+    case "hour": end.setHours(end.getHours() + 1); break;
+    case "day": end.setDate(end.getDate() + 1); break;
+    case "week": end.setDate(end.getDate() + 7); break;
+    case "month": end.setMonth(end.getMonth() + 1); break;
+    case "year": end.setFullYear(end.getFullYear() + 1); break;
   }
 
-  // Format for datetime-local input
   form.value.endDate = end.toISOString().slice(0, 16);
 }
 
@@ -175,63 +209,48 @@ async function handleBooking() {
   try {
     const lang = localStorage.getItem("lang") || "en";
 
-    // Convert dates to ISO for backend
     const payload = {
       ...form.value,
       startDate: new Date(form.value.startDate).toISOString(),
       endDate: new Date(form.value.endDate).toISOString(),
     };
 
-    await createBooking(payload, token, lang);
+    // ✅ BACKEND RETURN USED
+    const res = await createBooking(payload, token, lang);
+    paymentInfo.value = res;
     message.value = t("bookingSuccess");
+
   } catch (err) {
-    console.error("Booking error:", err.response?.data || err.message);
     error.value = err.response?.data?.message || t("bookingFailed");
   } finally {
     loading.value = false;
   }
 }
+
+function formatDate(date) {
+  return new Date(date).toLocaleString();
+}
 </script>
 
 <style scoped>
-/* ==== GLOBAL RESPONSIVE & MOBILE-FIRST STYLING ==== */
+/* === SAME STYLES + SMALL ADDITIONS === */
 
 .booking-wrapper {
   width: 100%;
   min-height: 100vh;
-
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-
   padding: 20px 16px;
-  background-color: white;
-  box-sizing: border-box;
 }
-
-/* ===== FORM CARD ===== */
 
 .booking-card {
   width: 100%;
   max-width: 480px;
-
   background: white;
   padding: 24px;
-
   border-radius: 18px;
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
-
-  animation: fadeIn 0.3s ease-out;
 }
-
-.booking-card h2 {
-  font-size: 20px;
-  color: #1f2a44;
-  font-weight: 700;
-  margin-bottom: 18px;
-}
-
-/* ==== FORM ==== */
 
 .booking-form {
   display: flex;
@@ -239,105 +258,56 @@ async function handleBooking() {
   gap: 18px;
 }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.form-group label {
-  margin-bottom: 6px;
-  font-weight: 600;
-  color: #374151;
-}
-
-.form-group input,
-.form-group select {
-  padding: 12px;
-  border-radius: 10px;
-
-  background: #ffffff;
-  border: 1px solid #c7d1e0;
-
-  font-size: 15px;
-  transition: 0.25s ease-in-out;
-}
-
-.form-group input:focus,
-.form-group select:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-  outline: none;
-}
-
-/* ==== RESPONSIVE ROW ==== */
-
 .form-row {
   display: flex;
   gap: 14px;
 }
 
-/* Mobile: stack fields */
-@media (max-width: 600px) {
-  .form-row {
-    flex-direction: column;
-  }
-}
-
-/* Desktop: 50/50 split */
 .half {
   flex: 1;
 }
 
-/* ==== BUTTON ==== */
+input, select {
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #c7d1e0;
+}
 
 button {
   padding: 14px;
-
   background: #2563eb;
-  border: none;
-  border-radius: 10px;
-
   color: white;
+  border-radius: 10px;
   font-weight: 600;
-  font-size: 16px;
-  cursor: pointer;
-
-  transition: background 0.25s;
 }
 
-button:hover {
-  background: #1d4ed8;
+.payment-box {
+  border: 2px dashed #2563eb;
+  padding: 16px;
+  border-radius: 12px;
+  background: #f8fafc;
 }
 
-button:disabled {
-  background: #93a4c1;
-  cursor: not-allowed;
+.reference {
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 1px;
 }
-
-/* ==== MESSAGES ==== */
 
 .success-msg {
   color: #10b981;
-  margin-top: 10px;
   font-weight: 600;
+  margin-top: 12px;
 }
 
 .error-msg {
   color: #dc2626;
-  margin-top: 10px;
   font-weight: 600;
 }
 
-/* Fade animation */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.info {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #374151;
 }
-
 </style>
