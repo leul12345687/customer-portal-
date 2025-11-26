@@ -1,5 +1,8 @@
 import { ref, computed, watch } from "vue";
 
+// --------------------------
+// Decode JWT safely
+// --------------------------
 function decodeToken(token) {
   try {
     const payload = token.split(".")[1];
@@ -9,36 +12,39 @@ function decodeToken(token) {
   }
 }
 
+// --------------------------
+// Reactive state
+// --------------------------
 export const authToken = ref(localStorage.getItem("token"));
 export const user = ref(JSON.parse(localStorage.getItem("user") || "null"));
 
 let logoutTimer = null;
 
-/* ===============================
-   AUTH STATE
-================================ */
+// --------------------------
+// Computed values
+// --------------------------
 export const isAuthenticated = computed(() => {
   if (!authToken.value) return false;
 
   const decoded = decodeToken(authToken.value);
   if (!decoded?.exp) return false;
 
-  const now = Math.floor(Date.now() / 1000);
-  return decoded.exp > now;
+  const now = Date.now();
+  return decoded.exp * 1000 > now;
 });
 
-export const userName = computed(() => user.value?.name || "User");
+export const userName = computed(() => user.value?.name || "Guest");
 
-/* ===============================
-   AUTO LOGOUT HANDLER
-================================ */
+// --------------------------
+// Auto logout handling
+// --------------------------
 function scheduleAutoLogout(token) {
   const decoded = decodeToken(token);
   if (!decoded?.exp) return;
 
   const expiresInMs = decoded.exp * 1000 - Date.now();
 
-  // Clear old timer
+  // Clear previous timer
   if (logoutTimer) clearTimeout(logoutTimer);
 
   if (expiresInMs > 0) {
@@ -50,9 +56,9 @@ function scheduleAutoLogout(token) {
   }
 }
 
-/* ===============================
-   ACTIONS
-================================ */
+// --------------------------
+// Login / Logout actions
+// --------------------------
 export function login(token, userData) {
   authToken.value = token;
   user.value = userData;
@@ -76,11 +82,30 @@ export function logout() {
   }
 }
 
-/* ===============================
-   SYNC ON APP LOAD
-================================ */
-watch(authToken, (token) => {
-  if (token) {
-    scheduleAutoLogout(token);
+// --------------------------
+// Sync auth state on page load (supports deployed SPA)
+// --------------------------
+function syncAuthState() {
+  const token = localStorage.getItem("token");
+  const userData = JSON.parse(localStorage.getItem("user") || "null");
+
+  authToken.value = token;
+  user.value = userData;
+
+  if (token) scheduleAutoLogout(token);
+}
+
+// Initial sync on app start
+syncAuthState();
+
+// --------------------------
+// Listen to localStorage changes across tabs/windows
+// --------------------------
+window.addEventListener("storage", (event) => {
+  if (event.key === "token") {
+    authToken.value = event.newValue;
+  }
+  if (event.key === "user") {
+    user.value = JSON.parse(event.newValue || "null");
   }
 });

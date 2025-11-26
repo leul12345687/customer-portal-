@@ -63,12 +63,11 @@
     </div>
   </div>
 </template>
-
 <script setup>
 import { ref, onMounted, onBeforeUnmount, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
-import { authToken, isAuthenticated, userName, logout } from "./authState";
+import { authToken, isAuthenticated, userName, logout } from "./authState.js";
 
 // --------------------------
 // Router & i18n
@@ -106,14 +105,26 @@ const handleClickOutside = (e) => {
   }
 };
 
-onMounted(() => document.addEventListener("click", handleClickOutside));
-onBeforeUnmount(() => document.removeEventListener("click", handleClickOutside));
+onMounted(() => {
+  document.addEventListener("click", handleClickOutside);
+
+  // Sync auth state for deployed SPA
+  if (authToken.value) {
+    // Ensure auto logout is scheduled
+    // This is already handled in authState.js
+  }
+});
+
+// Clean up
+onBeforeUnmount(() => {
+  document.removeEventListener("click", handleClickOutside);
+});
 
 // --------------------------
 // LOGOUT ACTION
 // --------------------------
 const handleLogout = () => {
-  logout(); // reactive logout from authState.js
+  logout(); // reactive logout
   menuOpen.value = false;
   router.push("/login");
 };
@@ -125,7 +136,18 @@ const goToLogin = () => {
   menuOpen.value = false;
   router.push("/login");
 };
+
+// --------------------------
+// CROSS-TAB SYNC
+// --------------------------
+window.addEventListener("storage", (event) => {
+  if (event.key === "token" || event.key === "user") {
+    // reactive state in authState.js updates automatically
+    // dropdown buttons will reflect current auth state
+  }
+});
 </script>
+
 
 <style>
 /* ===== PAGE WRAPPER ===== */
