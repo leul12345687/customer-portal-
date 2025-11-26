@@ -111,23 +111,12 @@
       <template v-else>
         <h2>Payment Required</h2>
 
-       <div class="payment-box">
-  <p>
-    <strong>Amount:</strong>
-    {{ paymentInfo.amount ?? "—" }} ETB
-  </p>
+  <div class="payment-box">
+ <p><strong>Amount:</strong> {{ paymentInfo?.totalPrice || '—' }} ETB</p>
+<p><strong>Account Number:</strong> {{ paymentInfo?.accountNumber || '—' }}</p>
+<p><strong>Payment Reference:</strong> {{ paymentInfo?.paymentReference || '—' }}</p>
+<p><strong>Pay Before:</strong> {{ paymentInfo?.expiresAt ? formatDate(paymentInfo.expiresAt) : '—' }}</p>
 
-  <p>
-    <strong>Bank:</strong>
-    {{ paymentInfo.bank || "Commercial Bank of Ethiopia" }}
-  </p>
-
-  <p>
-    <strong>Account Number:</strong>
-    {{ paymentInfo.accountNumber || "—" }}
-  </p>
-
-  <p><strong>Payment Reference:</strong></p>
   <div class="reference">
     {{ paymentInfo.paymentReference }}
   </div>
@@ -232,6 +221,7 @@ async function handleBooking() {
     // ✅ BACKEND RETURN USED
     const res = await createBooking(payload, token, lang);
     paymentInfo.value = res;
+    console.log("paymentInfo", paymentInfo.value);
     message.value = t("bookingSuccess");
 
   } catch (err) {
