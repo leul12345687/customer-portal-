@@ -33,7 +33,7 @@
               </button>
 
               <!-- LOGOUT (only if authenticated & token valid) -->
-              <button v-if="isAuthenticated" @click="logout">
+              <button v-if="isAuthenticated" @click="handleLogout">
                 {{ t("logout") }}
               </button>
 
@@ -65,22 +65,34 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, watch } from "vue";
+import { ref, onMounted, onBeforeUnmount, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
+import { authToken, isAuthenticated, userName, logout } from "./authState";
 
+// --------------------------
+// Router & i18n
+// --------------------------
 const router = useRouter();
 const { t, locale } = useI18n();
 
-/* ===============================
-   LANGUAGE
-================================ */
+// --------------------------
+// LANGUAGE
+// --------------------------
 const selectedLang = ref(localStorage.getItem("lang") || "en");
 locale.value = selectedLang.value;
 
-/* ===============================
-   DROPDOWN
-================================ */
+const changeLang = () => {
+  locale.value = selectedLang.value;
+  localStorage.setItem("lang", selectedLang.value);
+  menuOpen.value = false;
+};
+
+watch(locale, (lang) => localStorage.setItem("lang", lang));
+
+// --------------------------
+// DROPDOWN
+// --------------------------
 const menuOpen = ref(false);
 const dropdownArea = ref(null);
 
@@ -97,63 +109,23 @@ const handleClickOutside = (e) => {
 onMounted(() => document.addEventListener("click", handleClickOutside));
 onBeforeUnmount(() => document.removeEventListener("click", handleClickOutside));
 
-/* ===============================
-   AUTH LOGIC (IMPORTANT PART)
-================================ */
+// --------------------------
+// LOGOUT ACTION
+// --------------------------
+const handleLogout = () => {
+  logout(); // reactive logout from authState.js
+  menuOpen.value = false;
+  router.push("/login");
+};
 
-// Decode JWT safely
-function decodeToken(token) {
-  try {
-    const payload = token.split(".")[1];
-    return JSON.parse(atob(payload));
-  } catch {
-    return null;
-  }
-}
-
-// Check token validity
-const isAuthenticated = computed(() => {
-  const token = localStorage.getItem("token");
-  if (!token) return false;
-
-  const decoded = decodeToken(token);
-  if (!decoded?.exp) return false;
-
-  const now = Math.floor(Date.now() / 1000);
-  return decoded.exp > now; // ✅ un-expired token
-});
-
-// Username (only when authenticated)
-const userName = computed(() => {
-  if (!isAuthenticated.value) return t("guest");
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
-  return user?.name || "User";
-});
-
-/* ===============================
-   ACTIONS
-================================ */
+// --------------------------
+// GO TO LOGIN
+// --------------------------
 const goToLogin = () => {
   menuOpen.value = false;
   router.push("/login");
 };
-
-const logout = () => {
-  localStorage.removeItem("token");
-  localStorage.removeItem("user");
-  menuOpen.value = false;
-  router.push("/login");
-};
-
-const changeLang = () => {
-  locale.value = selectedLang.value;
-  localStorage.setItem("lang", selectedLang.value);
-  menuOpen.value = false;
-};
-
-watch(locale, (lang) => localStorage.setItem("lang", lang));
 </script>
-
 
 <style>
 /* ===== PAGE WRAPPER ===== */

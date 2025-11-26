@@ -51,13 +51,13 @@
       </div>
     </div>
   </div>
-</template>
-
-<script setup>
+</template><script setup>
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { loginCustomer } from "../services/customerService.js";
+// ✅ Import reactive authState
+import { login as authLogin } from "../authState.js";
 
 // --------------------------
 // i18n setup
@@ -65,6 +65,9 @@ import { loginCustomer } from "../services/customerService.js";
 const { t, locale } = useI18n();
 const router = useRouter();
 
+// --------------------------
+// Form state
+// --------------------------
 const form = ref({ email: "", password: "" });
 const loading = ref(false);
 const message = ref("");
@@ -105,8 +108,10 @@ async function handleLogin() {
     const res = await loginCustomer(form.value, lang);
 
     if (res.token) {
-      // Save token and backend message
-      localStorage.setItem("token", res.token);
+      // ✅ Use reactive authState for login
+      authLogin(res.token, res.user);
+
+      // Show backend message
       message.value = res.message;
 
       // 🔥 Check if user attempted to "Book Now" earlier
@@ -143,8 +148,8 @@ async function handleLogin() {
     loading.value = false;
   }
 }
-
 </script>
+
 
 <style scoped>
 .login-page {
