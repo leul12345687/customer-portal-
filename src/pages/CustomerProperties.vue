@@ -9,7 +9,7 @@
     </div>
 
     <!-- ================= CATEGORY PAGE ================= -->
-    <div v-if="showCategories">
+    <section v-if="showCategories" class="category-section">
       <h2>{{ t("Select availableProperties by category") }}</h2>
 
       <div class="category-buttons">
@@ -21,10 +21,29 @@
           {{ cat.label }}
         </button>
       </div>
-    </div>
+    </section>
+
+    <!-- ================= CUSTOM CATEGORY PAGE (OTHER) ================= -->
+    <section v-if="showCustomCategories" class="category-section">
+      <h2>{{ t("Select Custom Category") }}</h2>
+
+      <div v-if="customCategories.length" class="category-buttons">
+        <button
+          v-for="custom in customCategories"
+          :key="custom"
+          @click="selectCustomCategory(custom)"
+        >
+          {{ custom }}
+        </button>
+      </div>
+
+      <p v-else class="no-results">
+        {{ t("noCustomCategoryFound") }}
+      </p>
+    </section>
 
     <!-- ================= PROPERTIES PAGE ================= -->
-    <div v-if="!showCategories">
+    <section v-if="showProperties">
 
       <!-- Loading -->
       <div v-if="loading" class="loading-section">
@@ -36,8 +55,11 @@
       <p v-if="error" class="error">{{ error }}</p>
 
       <!-- Properties List -->
-      <div v-if="!loading && properties.length" class="property-list">
-        <div
+      <div
+        v-if="!loading && properties.length"
+        class="property-list"
+      >
+        <article
           v-for="(property, index) in properties"
           :key="property._id || index"
           class="property-card"
@@ -47,17 +69,27 @@
             v-if="property.imageUrls?.length"
             :src="property.imageUrls[0]"
             class="property-img"
+            alt="Property image"
           />
+          <div v-else class="no-image">
+            {{ t("noImage") }}
+          </div>
 
-          <div v-else class="no-image">No Image</div>
-
-          <!-- Property Information -->
+          <!-- Property Info -->
           <h3>{{ property.name }}</h3>
           <p class="desc">{{ property.description }}</p>
-          <p><strong>{{ t("numberOfProperty") }}:</strong> {{ property.numberOfProperty }}</p>
-          <p><strong>{{ t("category") }}:</strong> {{ property.category }}</p>
 
-          <!-- Buttons -->
+          <p>
+            <strong>{{ t("numberOfProperty") }}:</strong>
+            {{ property.numberOfProperty }}
+          </p>
+
+          <p>
+            <strong>{{ t("category") }}:</strong>
+            {{ property.category }}
+          </p>
+
+          <!-- Action Buttons -->
           <div class="btn-group">
             <button class="book-btn" @click="bookNow(property)">
               {{ t("bookNow") }}
@@ -68,7 +100,7 @@
             </button>
           </div>
 
-          <!-- DETAILS SECTION -->
+          <!-- DETAILS -->
           <transition name="fade">
             <div v-if="expanded[index]" class="details">
               <h4>{{ t("merchantInfo") }}</h4>
@@ -101,16 +133,19 @@
               <p v-else>{{ t("noBookings") }}</p>
             </div>
           </transition>
-        </div>
+        </article>
       </div>
 
       <!-- No Results -->
-      <p v-if="!loading && !properties.length && !error" class="no-results">
+      <p
+        v-if="!loading && !properties.length && !error"
+        class="no-results"
+      >
         {{ t("noPropertiesFound") }}
       </p>
-    </div>
+    </section>
 
-    <!-- LOGIN PROMPT -->
+    <!-- ================= LOGIN PROMPT ================= -->
     <transition name="prompt-fade">
       <div v-if="showLoginPrompt" class="login-prompt-overlay">
         <div class="message-box">
@@ -119,7 +154,10 @@
           <h3>{{ t("loginRequiredTitle") }}</h3>
           <p>{{ t("loginRequiredMessage") }}</p>
 
-          <button @click="goToLoginAndClearPrompt" class="redirect-btn">
+          <button
+            @click="goToLoginAndClearPrompt"
+            class="redirect-btn"
+          >
             {{ t("loginOrRegister") }}
           </button>
         </div>
@@ -138,10 +176,17 @@ import { getPropertiesByCategory } from "../services/propertyService.js";
 const { t } = useI18n();
 const router = useRouter();
 
-/* ===== NEW ADDED ===== */
+/* =====================================================
+   UI STATES
+===================================================== */
 const showCategories = ref(true);
+const showCustomCategories = ref(false);
+const showProperties = ref(false);
+const showLoginPrompt = ref(false);
 
-/* ===== EXISTING STATES ===== */
+/* =====================================================
+   DATA STATES
+===================================================== */
 const categories = [
   { value: "EventSupply", label: "Event Supply" },
   { value: "ConstructionEquipment", label: "Construction Equipment" },
@@ -151,47 +196,113 @@ const categories = [
 
 const category = ref("");
 const properties = ref([]);
+const allOtherProperties = ref([]);
+const customCategories = ref([]);
+
 const loading = ref(false);
 const error = ref("");
 const expanded = ref({});
-const showLoginPrompt = ref(false);
 
-
-/* ===== FUNCTIONS ===== */
-
+/* =====================================================
+   CATEGORY SELECTION
+===================================================== */
 async function selectCategory(cat) {
   category.value = cat;
   showCategories.value = false;
-  await fetchProperties();
+
+  if (cat === "Other") {
+    await loadCustomCategories();
+  } else {
+    showProperties.value = true;
+    await fetchProperties(cat);
+  }
 }
 
-function goBack() {
-  showCategories.value = true;
-  category.value = "";
-  properties.value = [];
-  expanded.value = {};
-}
-
-async function fetchProperties() {
+/* =====================================================
+   LOAD NORMAL CATEGORIES
+===================================================== */
+async function fetchProperties(cat) {
   loading.value = true;
   error.value = "";
   properties.value = [];
 
   try {
     const lang = localStorage.getItem("lang") || "en";
-    const data = await getPropertiesByCategory(category.value, lang);
-    properties.value = data.properties || [];
+    const res = await getPropertiesByCategory(cat, lang);
+    properties.value = res.properties || [];
   } catch (err) {
-    error.value = err.response?.data?.message || t("failedToLoadProperties");
+    error.value =
+      err.response?.data?.message || t("failedToLoadProperties");
   } finally {
     loading.value = false;
   }
 }
 
+/* =====================================================
+   LOAD CUSTOM CATEGORIES (OTHER)
+===================================================== */
+async function loadCustomCategories() {
+  loading.value = true;
+  showCustomCategories.value = true;
+  showProperties.value = false;
+  error.value = "";
+
+  try {
+    const lang = localStorage.getItem("lang") || "en";
+    const res = await getPropertiesByCategory("Other", lang);
+    allOtherProperties.value = res.properties || [];
+
+    // Extract unique customCategory values
+    const set = new Set();
+    allOtherProperties.value.forEach((p) => {
+      if (p.customCategory) set.add(p.customCategory);
+    });
+
+    customCategories.value = [...set];
+  } catch (err) {
+    error.value =
+      err.response?.data?.message || t("failedToLoadProperties");
+  } finally {
+    loading.value = false;
+  }
+}
+
+/* =====================================================
+   SELECT CUSTOM CATEGORY
+===================================================== */
+function selectCustomCategory(customCat) {
+  properties.value = allOtherProperties.value.filter(
+    (p) => p.customCategory === customCat
+  );
+
+  showCustomCategories.value = false;
+  showProperties.value = true;
+}
+
+/* =====================================================
+   NAVIGATION
+===================================================== */
+function goBack() {
+  showCategories.value = true;
+  showCustomCategories.value = false;
+  showProperties.value = false;
+
+  category.value = "";
+  properties.value = [];
+  expanded.value = {};
+  error.value = "";
+}
+
+/* =====================================================
+   PROPERTY DETAILS
+===================================================== */
 function toggleDetails(index) {
   expanded.value[index] = !expanded.value[index];
 }
 
+/* =====================================================
+   BOOKING
+===================================================== */
 function bookNow(property) {
   const token = localStorage.getItem("token");
 
@@ -207,7 +318,6 @@ function bookNow(property) {
         merchantAccount: property.merchant.acountnumber,
       })
     );
-
     return;
   }
 
@@ -227,6 +337,9 @@ function goToLoginAndClearPrompt() {
   router.push("/login");
 }
 
+/* =====================================================
+   UTIL
+===================================================== */
 function formatDateTime(dateStr) {
   if (!dateStr) return "";
   const d = new Date(dateStr);
@@ -239,7 +352,6 @@ function formatDateTime(dateStr) {
   });
 }
 </script>
-
 <style scoped>
 /* ===== BACK BUTTON ===== */
 .back-container {
@@ -268,27 +380,93 @@ h2 {
   text-align: center;
   color: #1e3a8a;
   margin-bottom: 20px;
+}/* ===== CATEGORY BUTTONS (RESPONSIVE) ===== */
+.category-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 12px;
+  padding: 10px;
+  max-width: 480px;
+  margin: 0 auto;
 }
 
-/* ===== CATEGORY BUTTONS ===== */
-.category-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px;
-}
 .category-buttons button {
-  padding: 14px 20px;
+  aspect-ratio: 1 / 1; /* always square */
+  width: 100%;
   border: 2px solid #1e3a8a;
+  background: #ffffff;
   color: #1e3a8a;
-  background: white;
-  font-weight: bold;
-  border-radius: 10px;
+  font-weight: 700;
+  border-radius: 12px;
   cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+
+  font-size: 14px;
+  line-height: 1.2;
+  padding: 6px;
+
+  transition: all 0.2s ease;
 }
+
 .category-buttons button:hover {
   background: #1e3a8a;
-  color: white;
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+.category-buttons button:active {
+  transform: scale(0.96);
+}
+/* ===== CUSTOM CATEGORY BUTTONS ===== */
+.custom-category-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+  gap: 10px;
+  padding: 10px;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.custom-category-buttons button {
+  aspect-ratio: 1 / 1;
+  width: 100%;
+  border: 2px dashed #0f766e;
+  background: #ecfdf5;
+  color: #0f766e;
+  font-weight: 600;
+  border-radius: 10px;
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 12px;
+  padding: 4px;
+
+  transition: all 0.2s ease;
+}
+
+.custom-category-buttons button:hover {
+  background: #0f766e;
+  color: #ffffff;
+}
+
+.custom-category-buttons button:active {
+  transform: scale(0.95);
+}
+
+
+/* ===== NO CUSTOM CATEGORY MESSAGE ===== */
+.no-custom-category {
+  text-align: center;
+  color: #6b7280;
+  font-style: italic;
+  margin-top: 20px;
 }
 
 /* ===== PROPERTY CARDS ===== */
@@ -319,6 +497,7 @@ h2 {
   justify-content: center;
   align-items: center;
 }
+
 .desc {
   color: #555;
 }
@@ -359,7 +538,7 @@ h2 {
 .login-prompt-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.7);
+  background: rgba(0, 0, 0, 0.7);
   display: flex;
   justify-content: center;
   align-items: center;
