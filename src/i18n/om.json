@@ -111,8 +111,66 @@
   "list of properties": "Tarree Qabeenyaa",
   "createBooking": "Booking Uumi",
   
-  "allBookings": "Booking Hundaa"
+  "allBookings": "Booking Hundaa",
+ "listOfProperties": "Tarree Qabeenyaalee",
 
+  "guest": "Keessummaa",
+   "paymentRequired": "Kaffaltiin Barbaachisaadha",
+
+  "totalAmount": "Waliigala Qarshii",
+  "netAmount": "Qarshii Qulqulluu",
+  "vat": "VAT",
+  "bank": "Baankii",
+  "accountNumber": "Lakkoofsa Herregaa",
+  "paymentReference": "Mallattoo Kaffaltii",
+  "payBefore": "Kaffali dura",
+  "paymentWarning": "Mallattoo kaffaltii sirrii fayyadami. Yoo hin kaffalamne qabsiisni ni dhuma.",
+  "paymentInfoNote": "Yeroo kaffaltii mallattoo sirrii fayyadami. Yoo hin kaffalamne qabsiisni ofumaan ni haqama.",
+  "PENDING": "Eegamaa Jira",
+  "CONFIRMED": "Mirkanaa'eera",
+  "CANCELLED": "Haqameera",
+  "EXPIRED": "Yeroon Darbeera",
+  "myProfile": "Proofaayilii Koo",
+  "loadingProfile": "Proofaayilii fe'aa jira...",
+  "changePhoto": "Suuraa Jijjiiri",
+  "fullName": "Maqaa Guutuu",
+  
+  "phoneNumber": "Lakkoofsa Bilbilaa",
+  "address": "Teessoo",
+  "saveChanges": "Jijjiirama Olkaa'i",
+  "saving": "Olkaa'aa jira...",
+  "profileUpdated": "Proofaayiliin milkaa'inaan haaromfameera",
+  "back": "Deebi'i",
+
+  "selectPropertiesByCategory": "Akkaataa gosaatiin qabeenya argamu filadhu",
+  "selectCustomCategory": "Gosa Addaa Filadhu",
+  "noCustomCategoryFound": "Gosti addaa hin argamne",
+
+  "loadingProperties": "Qabeenya fe'aa jira...",
+  "noPropertiesFound": "Qabeenyi hin argamne",
+  "noImage": "Suuraan hin jiru",
+
+
+  "bookNow": "Amma Qabsiisi",
+
+  "merchantInfo": "Odeeffannoo Daldalaa",
+  "businessName": "Maqaa Daldalaa",
+
+
+  "rentalDetails": "Ibsa Kireessaa",
+  "perHour": "Sa'aatii Tokko",
+ 
+  "perWeek": "Torban Tokko",
+  "perMonth": "Ji'a Tokko",
+  "perYear": "Waggaa Tokko",
+
+  "from": "Irraa",
+  "to": "Hanga",
+  "booked": "Qabameera",
+
+  "loginRequiredTitle": "Seenuun Barbaachisaadha",
+  "loginRequiredMessage": "Qabsiisuuf dura seeni ykn galmaa'i.",
+  "loginOrRegister": "Seeni ykn Galmaa'i"
 
 }
 

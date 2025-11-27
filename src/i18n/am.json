@@ -112,8 +112,75 @@
   "list of properties": "የንብረቶች ዝርዝር",
   "createBooking": "ቦታ ይያዙ",
   
-  "allBookings": "ሁሉም ቦታዎች"
+  "allBookings": "ሁሉም ቦታዎች",
+    
+  "listOfProperties": "የንብረቶች ዝርዝር",
+  "guest": "እንግዳ",
+  
+  "securityDeposit": "የዋስትና ተቀማጭ",
+  "optionalDeposit": "አማራጭ ተቀማጭ",
+ 
+  "paymentRequired": "ክፍያ ያስፈልጋል",
 
+  "totalAmount": "ጠቅላላ መጠን",
+  "netAmount": "የተጣራ መጠን",
+  "vat": "ቫት",
+  "bank": "ባንክ",
+  "accountNumber": "የመለያ ቁጥር",
+  "paymentReference": "የክፍያ ማጣቀሻ",
+  "payBefore": "ከዚህ በፊት ይክፈሉ",
+  "paymentWarning": "ትክክለኛውን የክፍያ ማጣቀሻ ይጠቀሙ። ካልተከፈለ ቦታው ይሰረዛል።",
+  "paymentInfoNote": "ክፍያ ሲከፍሉ ትክክለኛውን ማጣቀሻ ይጠቀሙ። ካልተከፈለ ቦታው በራሱ ይሰረዛል።",
+
+  "PENDING": "በመጠባበቅ ላይ",
+  "CONFIRMED": "ተረጋግጧል",
+  "CANCELLED": "ተሰርዟል",
+  "EXPIRED": "ጊዜው አልፏል",
+  "myProfile": "የእኔ መገለጫ",
+  "loadingProfile": "መገለጫ በመጫን ላይ...",
+  "changePhoto": "ፎቶ ቀይር",
+  "fullName": "ሙሉ ስም",
+
+  "phoneNumber": "ስልክ ቁጥር",
+  "address": "አድራሻ",
+  "saveChanges": "ለውጦችን አስቀምጥ",
+  "saving": "በማስቀመጥ ላይ...",
+  "profileUpdated": "መገለጫ ተሳክቶ ተዘምኗል",
+   "back": "ተመለስ",
+
+  "selectPropertiesByCategory": "በምድብ የሚገኙ ንብረቶችን ይምረጡ",
+  "selectCustomCategory": "ልዩ ምድብ ይምረጡ",
+  "noCustomCategoryFound": "ልዩ ምድብ አልተገኘም",
+
+  "loadingProperties": "ንብረቶች በመጫን ላይ...",
+  "noPropertiesFound": "ንብረቶች አልተገኙም",
+  "noImage": "ምስል የለም",
+
+  
+
+  "bookNow": "አሁን ያስያዙ",
+ 
+
+  "merchantInfo": "የነጋዴ መረጃ",
+  "businessName": "የንግድ ስም",
+ 
+
+  "rentalDetails": "የኪራይ ዝርዝር",
+  "perHour": "በሰዓት",
+  
+  "perWeek": "በሳምንት",
+  "perMonth": "በወር",
+  "perYear": "በዓመት",
+
+  
+  "from": "ከ",
+  "to": "እስከ",
+  "booked": "ተይዟል",
+
+
+  "loginRequiredTitle": "መግባት ያስፈልጋል",
+  "loginRequiredMessage": "ለመቀጠል እባክዎ ይግቡ ወይም ይመዝገቡ።",
+  "loginOrRegister": "ግባ / ተመዝገብ"
 
 
 }

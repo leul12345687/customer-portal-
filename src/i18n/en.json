@@ -142,5 +142,63 @@
   "Select availableProperties by category": "Select available properties by category",
   "noPropertiesFound": "No properties found",
   "loadingProperties": "Loading properties...",
-  "bookNow": "Book Now"
+  "bookNow": "Book Now",
+ 
+  "guest": "Guest",
+ 
+  "paymentRequired": "Payment Required",
+
+  "totalAmount": "Total Amount",
+  "netAmount": "Net Amount",
+  "vat": "VAT",
+  "bank": "Bank",
+  "accountNumber": "Account Number",
+  "paymentReference": "Payment Reference",
+  "payBefore": "Pay Before",
+  "paymentWarning": "Use the exact payment reference. Booking expires if unpaid.",
+  "paymentInfoNote": "Use the exact reference when paying. Booking will expire automatically if unpaid.",
+  "profile": "Profile",
+ 
+  "PENDING": "Pending",
+  "CONFIRMED": "Confirmed",
+  "CANCELLED": "Cancelled",
+  "EXPIRED": "Expired",
+  "changePhoto": "Change Photo",
+  
+  "phoneNumber": "Phone Number",
+ 
+  "saveChanges": "Save Changes",
+  "saving": "Saving...",
+  "profileUpdated": "Profile updated successfully",
+  "back": "Back",
+
+  "selectPropertiesByCategory": "Select available properties by category",
+  "selectCustomCategory": "Select Custom Category",
+  "noCustomCategoryFound": "No custom category found",
+
+ 
+  "noImage": "No image available",
+
+
+  "merchantInfo": "Merchant Information",
+ 
+  "businessName": "Business Name",
+
+
+  "rentalDetails": "Rental Details",
+  "perHour": "Per Hour",
+
+  "perWeek": "Per Week",
+  "perMonth": "Per Month",
+  "perYear": "Per Year",
+
+
+  "from": "From",
+  "to": "To",
+  "booked": "Booked",
+ 
+
+  "loginRequiredTitle": "Login Required",
+  "loginRequiredMessage": "Please login or register to continue booking.",
+  "loginOrRegister": "Login or Register"
 }

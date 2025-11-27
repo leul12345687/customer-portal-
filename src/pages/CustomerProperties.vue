@@ -18,7 +18,7 @@
 
     <!-- ================= MAIN CATEGORY SELECTION ================= -->
     <section v-if="showCategories" class="category-section">
-      <h2>{{ t("Select availableProperties by category") }}</h2>
+      <h2>{{ t("selectPropertiesByCategory")}}</h2>
 
       <div class="category-buttons">
         <button
@@ -33,7 +33,7 @@
 
     <!-- ================= CUSTOM CATEGORY (OTHER) ================= -->
     <section v-if="showCustomCategories" class="category-section">
-      <h2>{{ t("Select Custom Category") }}</h2>
+      <h2>{{ t("selectCustomCategory") }}</h2>
 
       <div
         v-if="customCategories.length"
