@@ -1,4 +1,16 @@
-import { ref, computed, watch } from "vue";
+import { ref, computed } from "vue";
+
+// --------------------------
+// Safe JSON parse
+// --------------------------
+function safeJSONParse(value) {
+  try {
+    if (!value || value === "undefined") return null;
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
 
 // --------------------------
 // Decode JWT safely
@@ -16,7 +28,7 @@ function decodeToken(token) {
 // Reactive state
 // --------------------------
 export const authToken = ref(localStorage.getItem("token"));
-export const user = ref(JSON.parse(localStorage.getItem("user") || "null"));
+export const user = ref(safeJSONParse(localStorage.getItem("user")));
 
 let logoutTimer = null;
 
@@ -29,8 +41,7 @@ export const isAuthenticated = computed(() => {
   const decoded = decodeToken(authToken.value);
   if (!decoded?.exp) return false;
 
-  const now = Date.now();
-  return decoded.exp * 1000 > now;
+  return decoded.exp * 1000 > Date.now();
 });
 
 export const userName = computed(() => user.value?.name || "Guest");
@@ -44,13 +55,10 @@ function scheduleAutoLogout(token) {
 
   const expiresInMs = decoded.exp * 1000 - Date.now();
 
-  // Clear previous timer
   if (logoutTimer) clearTimeout(logoutTimer);
 
   if (expiresInMs > 0) {
-    logoutTimer = setTimeout(() => {
-      logout();
-    }, expiresInMs);
+    logoutTimer = setTimeout(logout, expiresInMs);
   } else {
     logout();
   }
@@ -83,29 +91,29 @@ export function logout() {
 }
 
 // --------------------------
-// Sync auth state on page load (supports deployed SPA)
+// Sync auth state on app load
 // --------------------------
 function syncAuthState() {
   const token = localStorage.getItem("token");
-  const userData = JSON.parse(localStorage.getItem("user") || "null");
+  const userData = safeJSONParse(localStorage.getItem("user"));
 
-  authToken.value = token;
+  authToken.value = token || null;
   user.value = userData;
 
   if (token) scheduleAutoLogout(token);
 }
 
-// Initial sync on app start
 syncAuthState();
 
 // --------------------------
-// Listen to localStorage changes across tabs/windows
+// Cross-tab sync (SAFE)
 // --------------------------
 window.addEventListener("storage", (event) => {
   if (event.key === "token") {
-    authToken.value = event.newValue;
+    authToken.value = event.newValue || null;
   }
+
   if (event.key === "user") {
-    user.value = JSON.parse(event.newValue || "null");
+    user.value = safeJSONParse(event.newValue);
   }
 });

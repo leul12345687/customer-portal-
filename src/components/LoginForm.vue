@@ -108,40 +108,38 @@ async function handleLogin() {
     const lang = localStorage.getItem("lang") || "en";
     const res = await loginCustomer(form.value, lang);
 
-    if (res.token) {
-      // ✅ Use reactive authState for login
-      authLogin(res.token, res.user);
-
-      // Show backend message
-      message.value = res.message;
-
-      // 🔥 Check if user attempted to "Book Now" earlier
-      const pending = sessionStorage.getItem("pendingBooking");
-
-      if (pending) {
-        const bookingData = JSON.parse(pending);
-
-        // Remove it so it doesn't repeat
-        sessionStorage.removeItem("pendingBooking");
-
-        // ⏳ Short delay for success feedback
-        setTimeout(() => {
-          router.push({
-            path: "/app/booking",
-            query: bookingData, // send assetName, merchantEmail, etc.
-          });
-        }, 500);
-
-        return; // stop here
-      }
-
-      // ✅ Normal login → Dashboard
-      setTimeout(() => {
-        router.push("/app/dashboard");
-      }, 500);
-    } else {
-      error.value = res.message || t("invalidCredentials");
+    if (!res?.token) {
+      error.value = res?.message || t("invalidCredentials");
+      return;
     }
+
+    // ✅ 1. Persist auth FIRST
+    authLogin(res.token, res.user);
+
+    // ✅ 2. Force token flush (important on slow Wi-Fi)
+    await new Promise((r) => setTimeout(r, 100));
+
+    message.value = res.message;
+
+    // ✅ 3. Booking redirect (soft)
+    const pending = sessionStorage.getItem("pendingBooking");
+    if (pending) {
+      const bookingData = JSON.parse(pending);
+      sessionStorage.removeItem("pendingBooking");
+
+      setTimeout(() => {
+        window.location.href =
+          "/#/app/booking?" + new URLSearchParams(bookingData).toString();
+      }, 300);
+
+      return;
+    }
+
+    // ✅ 4. DASHBOARD — HARD GUARANTEED REDIRECT
+    setTimeout(() => {
+      window.location.href = "/#/app/dashboard";
+    }, 300);
+
   } catch (err) {
     error.value =
       err.response?.data?.message || err.message || t("loginFailed");
@@ -149,6 +147,7 @@ async function handleLogin() {
     loading.value = false;
   }
 }
+
 </script>
 
 

@@ -1,7 +1,7 @@
 // src/router/index.js
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHashHistory } from "vue-router";
 
-// Import pages
+// Pages
 import LoginPage from "../pages/LoginPage.vue";
 import RegisterPage from "../pages/RegisterPage.vue";
 import BookingPage from "../pages/BookingPage.vue";
@@ -12,46 +12,103 @@ import AllBookingsPage from "../pages/AllBookings.vue";
 import PropertyPage from "../pages/CustomerProperties.vue";
 import DashboardLayout from "../layout/DashboardLayout.vue";
 
+// ------------------------------------
+// Routes
+// ------------------------------------
 const routes = [
-  // 🏠 Public home page (Property list)
-  { path: "/", name: "Home", component: PropertyPage },
+  // 🌍 Public home
+  {
+    path: "/",
+    name: "Home",
+    component: PropertyPage,
+  },
 
-  // 🔐 Auth routes
-  { path: "/login", name: "Login", component: LoginPage },
-  { path: "/register", name: "Register", component: RegisterPage },
+  // 🔐 Auth
+  {
+    path: "/login",
+    name: "Login",
+    component: LoginPage,
+  },
+  {
+    path: "/register",
+    name: "Register",
+    component: RegisterPage,
+  },
 
-  // 👤 Protected customer portal
+  // 🔒 Protected app
   {
     path: "/app",
     component: DashboardLayout,
-    meta: { requiresAuth: true },
     children: [
-      { path: "dashboard", name: "Dashboard", component: DashboardPage },
-      { path: "booking", name: "Booking", component: BookingPage },
-      { path: "property", name: "Property", component: PropertyPage },
-      { path: "profile", name: "Profile", component: CustomerProfile },
-      { path: "my-bookings", name: "MyBookings", component: MyBookingsPage },
-      { path: "all-bookings", name: "AllBookings", component: AllBookingsPage },
+      {
+        path: "dashboard",
+        name: "Dashboard",
+        component: DashboardPage,
+        meta: { requiresAuth: true },
+      },
+      {
+        path: "booking",
+        name: "Booking",
+        component: BookingPage,
+        meta: { requiresAuth: true },
+      },
+      {
+        path: "property",
+        name: "Property",
+        component: PropertyPage,
+        meta: { requiresAuth: true },
+      },
+      {
+        path: "profile",
+        name: "Profile",
+        component: CustomerProfile,
+        meta: { requiresAuth: true },
+      },
+      {
+        path: "my-bookings",
+        name: "MyBookings",
+        component: MyBookingsPage,
+        meta: { requiresAuth: true },
+      },
+      {
+        path: "all-bookings",
+        name: "AllBookings",
+        component: AllBookingsPage,
+        meta: { requiresAuth: true },
+      },
     ],
   },
 
-  // 🧭 Catch all unknown paths
-  { path: "/:catchAll(.*)", redirect: "/" },
+  // 🧭 Catch-all
+  {
+    path: "/:pathMatch(.*)*",
+    redirect: "/",
+  },
 ];
 
+// ------------------------------------
+// Router instance
+// ------------------------------------
 const router = createRouter({
-  history: createWebHistory(),
+  // ✅ HASH history = 100% safe on Render & all networks
+  history: createWebHashHistory(),
   routes,
 });
 
-// 🔒 Route guard for authentication
+// ------------------------------------
+// Auth Guard (SIMPLIFIED & SAFE)
+// ------------------------------------
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem("token");
 
-  if (to.meta.requiresAuth && !token) next("/login");
-  else if ((to.path === "/login" || to.path === "/register") && token)
-    next("/app/dashboard");
-  else next();
+  // Protect private routes
+  if (to.meta.requiresAuth && !token) {
+    return next("/login");
+  }
+
+  // Do NOT auto-redirect from /login here
+  // (Login page controls navigation)
+  next();
 });
 
 export default router;
