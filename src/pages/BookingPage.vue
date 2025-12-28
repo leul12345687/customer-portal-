@@ -113,18 +113,19 @@
 
         <div class="payment-box">
 
-          <p><b>Total Amount:</b> {{ paymentInfo.grossAmount }} ETB</p>
+          
           <p><b>Net Amount:</b> {{ paymentInfo.netAmount }} ETB</p>
           <p><b>VAT ({{ (paymentInfo.vatRate ?? 0) * 100 }}%):</b> {{ paymentInfo.vatAmount }} ETB</p>
-
+          <p><b>Total Amount:</b> {{ paymentInfo.grossAmount }} ETB</p>
+          
+            <p><b>Payment Reference:</b> {{ paymentInfo.paymentReference }}</p>
+            <p><b>Pay Before:</b> {{ formatDate(paymentInfo.expiresAt) }}</p>
           <hr />
 
           <!-- Bank info fallback -->
           <div v-if="!paymentInfo.checkoutUrl">
             <p><b>Bank:</b> Commercial Bank of Ethiopia</p>
             <p><b>Account Number:</b> {{ paymentInfo.accountNumber }}</p>
-            <p><b>Payment Reference:</b> {{ paymentInfo.paymentReference }}</p>
-            <p><b>Pay Before:</b> {{ formatDate(paymentInfo.expiresAt) }}</p>
           </div>
 
           <!-- ✅ Pay Button -->
