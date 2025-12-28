@@ -1,4 +1,3 @@
-
 <template>
   <div class="booking-wrapper">
     <div class="booking-card">
@@ -128,6 +127,13 @@
             <p><b>Pay Before:</b> {{ formatDate(paymentInfo.expiresAt) }}</p>
           </div>
 
+          <!-- ✅ Pay Button -->
+          <div v-else>
+            <button @click="goToCheckout" class="pay-btn">
+              Pay Now
+            </button>
+          </div>
+
           <hr />
 
           <p>{{ paymentInfo.message }}</p>
@@ -141,8 +147,9 @@
     </div>
   </div>
 </template>
+
 <script setup>
-import { ref, onMounted, watchEffect } from "vue";
+import { ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
 import { createBooking } from "../services/bookingService.js";
@@ -164,17 +171,17 @@ const message = ref("");
 const error = ref("");
 const loading = ref(false);
 
-// ✅ Payment response holder
+// ✅ Holds booking + payment info after creation
 const paymentInfo = ref(null);
 
-// Prefill form from route query
+// Prefill from route query
 onMounted(() => {
   const { assetName, merchantEmail } = route.query;
   if (assetName) form.value.assetName = assetName;
   if (merchantEmail) form.value.merchantEmail = merchantEmail;
 });
 
-// Auto-adjust end date based on interval
+// Auto adjust end date based on interval
 function autoAdjustEndDate() {
   if (!form.value.startDate) return;
 
@@ -182,21 +189,11 @@ function autoAdjustEndDate() {
   const end = new Date(start);
 
   switch (form.value.timeInterval) {
-    case "hour":
-      end.setHours(end.getHours() + 1);
-      break;
-    case "day":
-      end.setDate(end.getDate() + 1);
-      break;
-    case "week":
-      end.setDate(end.getDate() + 7);
-      break;
-    case "month":
-      end.setMonth(end.getMonth() + 1);
-      break;
-    case "year":
-      end.setFullYear(end.getFullYear() + 1);
-      break;
+    case "hour": end.setHours(end.getHours() + 1); break;
+    case "day": end.setDate(end.getDate() + 1); break;
+    case "week": end.setDate(end.getDate() + 7); break;
+    case "month": end.setMonth(end.getMonth() + 1); break;
+    case "year": end.setFullYear(end.getFullYear() + 1); break;
   }
 
   form.value.endDate = end.toISOString().slice(0, 16);
@@ -228,17 +225,12 @@ async function handleBooking() {
       endDate: new Date(form.value.endDate).toISOString(),
     };
 
-    // ✅ Call backend booking API
+    // ✅ Call backend to create booking
     const res = await createBooking(payload, token, lang);
+
+    // Save returned booking/payment info
     paymentInfo.value = res;
-
-    // 🔴 Redirect to Chapa checkout if checkoutUrl exists
-    if (res.checkoutUrl) {
-      window.location.href = res.checkoutUrl;
-      return;
-    }
-
-    message.value = res.message || t("bookingSuccess");
+    message.value = t("bookingSuccess");
   } catch (err) {
     console.error(err);
     error.value = err.response?.data?.message || t("bookingFailed");
@@ -247,19 +239,20 @@ async function handleBooking() {
   }
 }
 
-// Format dates nicely for display
+// Navigate to Chapa checkout page
+function goToCheckout() {
+  if (paymentInfo.value?.checkoutUrl) {
+    window.location.href = paymentInfo.value.checkoutUrl;
+  } else {
+    error.value = "Payment URL not available.";
+  }
+}
+
+// Format dates
 function formatDate(date) {
   return date ? new Date(date).toLocaleString() : "";
 }
-
-// Watch paymentInfo to automatically log or debug
-watchEffect(() => {
-  if (paymentInfo.value) {
-    console.log("🔔 Payment info updated:", paymentInfo.value);
-  }
-});
 </script>
-
 
 <style scoped>
 /* ===============================
@@ -323,13 +316,11 @@ select:focus {
 }
 
 /* ===============================
-   BUTTON
+   BUTTONS
 ================================ */
 button {
   width: 100%;
   padding: 14px;
-  background: #2563eb;
-  color: #ffffff;
   border-radius: 12px;
   font-weight: 600;
   font-size: 16px;
@@ -338,11 +329,38 @@ button {
   transition: background 0.2s ease, transform 0.1s ease;
 }
 
-button:hover {
+/* Form Submit */
+.booking-form button {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.booking-form button:hover {
   background: #1e40af;
 }
 
-button:active {
+.booking-form button:active {
+  transform: scale(0.97);
+}
+
+/* Pay Button (checkout) */
+.pay-btn {
+  background: #10b981; /* green */
+  color: #ffffff;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.1s ease;
+  margin-top: 12px;
+}
+
+.pay-btn:hover {
+  background: #059669;
+}
+
+.pay-btn:active {
   transform: scale(0.97);
 }
 
