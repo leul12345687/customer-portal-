@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://lmgtech-4.onrender.com",
+  baseURL: "https://lmgtech-9v5x.onrender.com",
 });
 
 // 🔄 Automatically attach token + language to every request
