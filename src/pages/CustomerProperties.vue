@@ -210,26 +210,19 @@ const categories = [
 ];
 
 const category = ref("");
-const selectedCustomCategory = ref(""); // ⭐ NEW
+const selectedCustomCategory = ref("");
 const properties = ref([]);
-const allOtherProperties = ref([]);
 const customCategories = ref([]);
-
 const loading = ref(false);
 const error = ref("");
 const expanded = ref({});
 
 /* =====================================================
-   SELECTED CATEGORY TITLE (FOR UI)
+   SELECTED CATEGORY TITLE
 ===================================================== */
 const selectedCategoryLabel = computed(() => {
-  if (selectedCustomCategory.value) {
-    return selectedCustomCategory.value;
-  }
-
-  const found = categories.find(
-    (c) => c.value === category.value
-  );
+  if (selectedCustomCategory.value) return selectedCustomCategory.value;
+  const found = categories.find((c) => c.value === category.value);
   return found ? found.label : "";
 });
 
@@ -252,19 +245,18 @@ async function selectCategory(cat) {
 /* =====================================================
    LOAD NORMAL CATEGORIES
 ===================================================== */
-async function fetchProperties(cat) {
+async function fetchProperties(cat, customCat = "") {
   loading.value = true;
   error.value = "";
   properties.value = [];
 
   try {
     const lang = localStorage.getItem("lang") || "en";
-    const res = await getPropertiesByCategory(cat, lang);
+    // Pass customCategory if defined
+    const res = await getPropertiesByCategory(cat, lang, customCat || undefined);
     properties.value = res.properties || [];
   } catch (err) {
-    error.value =
-      err.response?.data?.message ||
-      t("failedToLoadProperties");
+    error.value = err.response?.data?.message || t("failedToLoadProperties");
   } finally {
     loading.value = false;
   }
@@ -282,18 +274,16 @@ async function loadCustomCategories() {
   try {
     const lang = localStorage.getItem("lang") || "en";
     const res = await getPropertiesByCategory("Other", lang);
-    allOtherProperties.value = res.properties || [];
+    const allOtherProperties = res.properties || [];
 
+    // extract unique custom categories
     const set = new Set();
-    allOtherProperties.value.forEach((p) => {
+    allOtherProperties.forEach((p) => {
       if (p.customCategory) set.add(p.customCategory);
     });
-
     customCategories.value = [...set];
   } catch (err) {
-    error.value =
-      err.response?.data?.message ||
-      t("failedToLoadProperties");
+    error.value = err.response?.data?.message || t("failedToLoadProperties");
   } finally {
     loading.value = false;
   }
@@ -302,15 +292,13 @@ async function loadCustomCategories() {
 /* =====================================================
    SELECT CUSTOM CATEGORY
 ===================================================== */
-function selectCustomCategory(customCat) {
+async function selectCustomCategory(customCat) {
   selectedCustomCategory.value = customCat;
-
-  properties.value = allOtherProperties.value.filter(
-    (p) => p.customCategory === customCat
-  );
-
   showCustomCategories.value = false;
   showProperties.value = true;
+
+  // Fetch properties for the selected custom category from backend
+  await fetchProperties("Other", customCat);
 }
 
 /* =====================================================
@@ -320,7 +308,6 @@ function goBack() {
   showCategories.value = true;
   showCustomCategories.value = false;
   showProperties.value = false;
-
   category.value = "";
   selectedCustomCategory.value = "";
   properties.value = [];
@@ -343,7 +330,6 @@ function bookNow(property) {
 
   if (!token) {
     showLoginPrompt.value = true;
-
     sessionStorage.setItem(
       "pendingBooking",
       JSON.stringify({
@@ -387,6 +373,7 @@ function formatDateTime(dateStr) {
   });
 }
 </script>
+
 
 <style scoped>
 /* ===== BACK BUTTON ===== */

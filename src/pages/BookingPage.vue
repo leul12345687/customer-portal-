@@ -1,9 +1,10 @@
+
 <template>
   <div class="booking-wrapper">
     <div class="booking-card">
 
       <!-- ========================= -->
-      <!-- BOOKING FORM (UNCHANGED) -->
+      <!-- BOOKING FORM -->
       <!-- ========================= -->
       <template v-if="!paymentInfo">
         <h2>{{ t("bookingTitle") }}</h2>
@@ -106,52 +107,42 @@
       </template>
 
       <!-- ========================= -->
-      <!-- PAYMENT INFO (NEW) -->
+      <!-- PAYMENT INFO -->
       <!-- ========================= -->
       <template v-else>
         <h2>Payment Required</h2>
 
-  <div class="payment-box">
-  <p><b>Total Amount:</b> {{ paymentInfo.totalPrice }} ETB</p>
-        <p><b>Net Amount:</b> {{ paymentInfo.netAmount }} ETB</p>
-        <p><b>VAT ({{ paymentInfo.vatRate * 100 }}%):</b> {{ paymentInfo.vatAmount }} ETB</p>
+        <div class="payment-box">
 
-        <hr />
+          <p><b>Total Amount:</b> {{ paymentInfo.grossAmount }} ETB</p>
+          <p><b>Net Amount:</b> {{ paymentInfo.netAmount }} ETB</p>
+          <p><b>VAT ({{ (paymentInfo.vatRate ?? 0) * 100 }}%):</b> {{ paymentInfo.vatAmount }} ETB</p>
 
-        <p><b>Bank:</b> Commercial Bank of Ethiopia</p>
-        <p><b>Account Number:</b> {{ paymentInfo.accountNumber }}</p>
-        <p><b>Payment Reference:</b> {{ paymentInfo.paymentReference }}</p>
-        <p><b>Pay Before:</b> {{ formatDate(paymentInfo.expiresAt) }}</p>
+          <hr />
 
-        <hr />
+          <!-- Bank info fallback -->
+          <div v-if="!paymentInfo.checkoutUrl">
+            <p><b>Bank:</b> Commercial Bank of Ethiopia</p>
+            <p><b>Account Number:</b> {{ paymentInfo.accountNumber }}</p>
+            <p><b>Payment Reference:</b> {{ paymentInfo.paymentReference }}</p>
+            <p><b>Pay Before:</b> {{ formatDate(paymentInfo.expiresAt) }}</p>
+          </div>
 
-        <p>{{ paymentInfo.message }}</p>
+          <hr />
 
-        <p class="warning">
-          Use the exact payment reference. Booking expires if unpaid.
-        </p>
+          <p>{{ paymentInfo.message }}</p>
 
-
-  
-</div>
-
-
-        <p class="success-msg">
-          {{ paymentInfo.message }}
-        </p>
-
-        <p class="info">
-          ⚠️ Use the exact reference when paying.  
-          Booking will expire automatically if unpaid.
-        </p>
+          <p class="warning" v-if="!paymentInfo.checkoutUrl">
+            Use the exact payment reference. Booking expires if unpaid.
+          </p>
+        </div>
       </template>
 
     </div>
   </div>
 </template>
-
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watchEffect } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
 import { createBooking } from "../services/bookingService.js";
@@ -173,17 +164,17 @@ const message = ref("");
 const error = ref("");
 const loading = ref(false);
 
-// ✅ NEW: payment response holder
+// ✅ Payment response holder
 const paymentInfo = ref(null);
 
-// Prefill from route
+// Prefill form from route query
 onMounted(() => {
   const { assetName, merchantEmail } = route.query;
   if (assetName) form.value.assetName = assetName;
   if (merchantEmail) form.value.merchantEmail = merchantEmail;
 });
 
-// Auto adjust end date
+// Auto-adjust end date based on interval
 function autoAdjustEndDate() {
   if (!form.value.startDate) return;
 
@@ -191,16 +182,27 @@ function autoAdjustEndDate() {
   const end = new Date(start);
 
   switch (form.value.timeInterval) {
-    case "hour": end.setHours(end.getHours() + 1); break;
-    case "day": end.setDate(end.getDate() + 1); break;
-    case "week": end.setDate(end.getDate() + 7); break;
-    case "month": end.setMonth(end.getMonth() + 1); break;
-    case "year": end.setFullYear(end.getFullYear() + 1); break;
+    case "hour":
+      end.setHours(end.getHours() + 1);
+      break;
+    case "day":
+      end.setDate(end.getDate() + 1);
+      break;
+    case "week":
+      end.setDate(end.getDate() + 7);
+      break;
+    case "month":
+      end.setMonth(end.getMonth() + 1);
+      break;
+    case "year":
+      end.setFullYear(end.getFullYear() + 1);
+      break;
   }
 
   form.value.endDate = end.toISOString().slice(0, 16);
 }
 
+// Handle booking submission
 async function handleBooking() {
   const token = localStorage.getItem("token");
   if (!token) {
@@ -226,25 +228,41 @@ async function handleBooking() {
       endDate: new Date(form.value.endDate).toISOString(),
     };
 
-    // ✅ BACKEND RETURN USED
+    // ✅ Call backend booking API
     const res = await createBooking(payload, token, lang);
     paymentInfo.value = res;
-    console.log("paymentInfo", paymentInfo.value);
-    message.value = t("bookingSuccess");
 
+    // 🔴 Redirect to Chapa checkout if checkoutUrl exists
+    if (res.checkoutUrl) {
+      window.location.href = res.checkoutUrl;
+      return;
+    }
+
+    message.value = res.message || t("bookingSuccess");
   } catch (err) {
+    console.error(err);
     error.value = err.response?.data?.message || t("bookingFailed");
   } finally {
     loading.value = false;
   }
 }
 
+// Format dates nicely for display
 function formatDate(date) {
-  return new Date(date).toLocaleString();
+  return date ? new Date(date).toLocaleString() : "";
 }
+
+// Watch paymentInfo to automatically log or debug
+watchEffect(() => {
+  if (paymentInfo.value) {
+    console.log("🔔 Payment info updated:", paymentInfo.value);
+  }
+});
 </script>
 
-<style scoped>/* ===============================
+
+<style scoped>
+/* ===============================
    PAGE WRAPPER (MOBILE FIRST)
 ================================ */
 .booking-wrapper {
@@ -295,6 +313,7 @@ select {
   font-size: 15px;
   outline: none;
   background: #ffffff;
+  transition: border 0.2s, box-shadow 0.2s;
 }
 
 input:focus,
@@ -336,6 +355,16 @@ button:active {
   border-radius: 14px;
   background: #f8fafc;
   text-align: center;
+  margin-top: 16px;
+}
+
+.payment-box a {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+.payment-box a:hover {
+  color: #1e40af;
 }
 
 /* Reference code */
@@ -363,12 +392,18 @@ button:active {
   text-align: center;
 }
 
-/* Info text */
 .info {
   margin-top: 10px;
   font-size: 14px;
   color: #374151;
   text-align: center;
+}
+
+.warning {
+  color: #b45309;
+  font-weight: 500;
+  font-size: 14px;
+  margin-top: 8px;
 }
 
 /* ===============================
@@ -397,5 +432,4 @@ button:active {
     align-items: center;
   }
 }
-
 </style>
