@@ -33,36 +33,25 @@
           </p>
           <p>
             <i class="fa-solid fa-clock"></i>
-            <b>{{ t("duration") }}:</b>
-            {{ formatDateTime(b.startDate) }} → {{ formatDateTime(b.endDate) }}
+            <b>{{ t("duration") }}:</b> {{ formatDateTime(b.startDate) }} → {{ formatDateTime(b.endDate) }}
           </p>
           <p>
             <i class="fa-solid fa-money-bill"></i>
             <b>{{ t("totalPrice") }}:</b> {{ b.totalPrice }}
           </p>
 
-          <!-- Payment -->
-          <div v-if="b.paymentStatus === 'UNPAID' && b.checkoutUrl">
-            <a
-              :href="b.checkoutUrl"
-              target="_blank"
-              class="pay-btn"
-            >
-              {{ t("payNow") }}
+          <!-- Payment Section -->
+          <div v-if="b.paymentStatus === 'UNPAID'">
+            <a v-if="b.checkoutUrl" :href="b.checkoutUrl" target="_blank" class="pay-btn">
+              {{ t("payNow") }} - {{ b.totalPrice }}
             </a>
             <p class="expires" v-if="b.expiresAt">
               {{ t("expiresAt") }}: {{ formatDateTime(b.expiresAt) }}
             </p>
           </div>
-          <div v-else-if="b.paymentStatus === 'PAID'">
-            <p class="paid">{{ t("paymentCompleted") }}</p>
+          <div v-else-if="b.paymentStatus === 'PAID'" class="paid">
+            {{ t("paymentCompleted") }}
           </div>
-        </div>
-
-        <!-- Payment Upload -->
-        <div class="upload-section">
-          <label><i class="fa-solid fa-upload"></i> {{ t("uploadProof") }}</label>
-          <input type="file" @change="e => uploadProof(e, b.bookingId)" />
         </div>
 
         <!-- Expand Button -->
@@ -93,19 +82,15 @@
             </div>
           </div>
         </transition>
-
       </div>
     </div>
 
-    <!-- Empty -->
+    <!-- Empty State -->
     <div v-else-if="!loading && !error" class="empty-state">
       <p>{{ t("noBookings") }}</p>
     </div>
-
   </div>
-</template>
-
-<script setup>
+</template><script setup>
 import { ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import axios from "axios";
@@ -121,18 +106,12 @@ const error = ref("");
 async function getMyBookings() {
   loading.value = true;
   const lang = localStorage.getItem("lang") || "en";
-
   try {
     const res = await axios.get(`${API_URL}/customer/bookings`, {
       headers: { Authorization: `Bearer ${token}` },
       params: { lang },
     });
-
-    // Add showDetails flag
-    bookings.value = res.data.bookings.map((b) => ({
-      ...b,
-      showDetails: false,
-    }));
+    bookings.value = res.data.bookings.map(b => ({ ...b, showDetails: false }));
   } catch (err) {
     error.value = err.response?.data?.message || t("loadFailed");
   } finally {
@@ -144,35 +123,10 @@ function toggleDetails(booking) {
   booking.showDetails = !booking.showDetails;
 }
 
-async function uploadProof(event, bookingId) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  try {
-    const formData = new FormData();
-    formData.append("paymentProof", file);
-
-    const res = await axios.post(
-      `${API_URL}/customer/bookings/${bookingId}/payment-proof`,
-      formData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      }
-    );
-
-    alert(res.data.message || t("uploadSuccess"));
-    getMyBookings(); // refresh bookings
-  } catch (err) {
-    alert(err.response?.data?.message || t("uploadFailed"));
-  }
-}
-
 function formatImage(path) {
   if (!path) return "";
-  return path.startsWith("http") ? path : `${API_URL}/${path}`;
+  if (path.startsWith("http")) return path;
+  return `${API_URL}/${path}`;
 }
 
 function formatDateTime(dateStr) {
