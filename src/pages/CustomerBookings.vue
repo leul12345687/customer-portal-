@@ -1,4 +1,4 @@
-<template> 
+<template>
   <div class="page">
     <h2 class="page-title">{{ t("myBookings") }}</h2>
 
@@ -27,22 +27,36 @@
             <i class="fa-solid fa-user"></i>
             <b>{{ t("merchant") }}:</b> {{ b.merchant.name }} ({{ b.merchant.phone }})
           </p>
-
           <p>
             <i class="fa-solid fa-building"></i>
             <b>{{ t("numberOfProperty") }}:</b> {{ b.numberOfProperty }}
           </p>
-
           <p>
             <i class="fa-solid fa-clock"></i>
             <b>{{ t("duration") }}:</b>
             {{ formatDateTime(b.startDate) }} → {{ formatDateTime(b.endDate) }}
           </p>
-
           <p>
             <i class="fa-solid fa-money-bill"></i>
             <b>{{ t("totalPrice") }}:</b> {{ b.totalPrice }}
           </p>
+
+          <!-- Payment -->
+          <div v-if="b.paymentStatus === 'UNPAID' && b.checkoutUrl">
+            <a
+              :href="b.checkoutUrl"
+              target="_blank"
+              class="pay-btn"
+            >
+              {{ t("payNow") }}
+            </a>
+            <p class="expires" v-if="b.expiresAt">
+              {{ t("expiresAt") }}: {{ formatDateTime(b.expiresAt) }}
+            </p>
+          </div>
+          <div v-else-if="b.paymentStatus === 'PAID'">
+            <p class="paid">{{ t("paymentCompleted") }}</p>
+          </div>
         </div>
 
         <!-- Payment Upload -->
@@ -59,30 +73,16 @@
         <!-- Expanded Details -->
         <transition name="fade">
           <div v-if="b.showDetails" class="details-section">
-
             <p><b>ID:</b> {{ b.bookingId }}</p>
-
-            <p>
-              <b>{{ t("merchant") }} Email:</b> {{ b.merchant.email }}
-            </p>
-
-            <p>
-              <b>{{ t("duration") }}:</b> {{ formatDateTime(b.startDate) }} →
-              {{ formatDateTime(b.endDate) }}
-            </p>
-
+            <p><b>{{ t("merchantEmail") }}:</b> {{ b.merchant.email }}</p>
+            <p><b>{{ t("duration") }}:</b> {{ formatDateTime(b.startDate) }} → {{ formatDateTime(b.endDate) }}</p>
             <p><b>{{ t("status") }}:</b> {{ b.status }}</p>
 
             <!-- Property Images -->
             <div v-if="b.imageUrls?.length" class="image-gallery">
               <p><b>{{ t("propertyImages") }}:</b></p>
               <div class="image-row">
-                <img
-                  v-for="img in b.imageUrls"
-                  :key="img"
-                  :src="formatImage(img)"
-                  class="thumb"
-                />
+                <img v-for="img in b.imageUrls" :key="img" :src="formatImage(img)" class="thumb" />
               </div>
             </div>
 
@@ -91,7 +91,6 @@
               <p><b>{{ t("paymentProof") }}:</b></p>
               <img :src="formatImage(b.paymentProofPath)" class="thumb" />
             </div>
-
           </div>
         </transition>
 
@@ -112,7 +111,6 @@ import { useI18n } from "vue-i18n";
 import axios from "axios";
 
 const { t } = useI18n();
-
 const API_URL = "https://lmgtech-9v5x.onrender.com";
 const token = localStorage.getItem("token");
 
@@ -122,7 +120,6 @@ const error = ref("");
 
 async function getMyBookings() {
   loading.value = true;
-
   const lang = localStorage.getItem("lang") || "en";
 
   try {
@@ -131,6 +128,7 @@ async function getMyBookings() {
       params: { lang },
     });
 
+    // Add showDetails flag
     bookings.value = res.data.bookings.map((b) => ({
       ...b,
       showDetails: false,
@@ -166,7 +164,7 @@ async function uploadProof(event, bookingId) {
     );
 
     alert(res.data.message || t("uploadSuccess"));
-    getMyBookings();
+    getMyBookings(); // refresh bookings
   } catch (err) {
     alert(err.response?.data?.message || t("uploadFailed"));
   }
@@ -174,11 +172,9 @@ async function uploadProof(event, bookingId) {
 
 function formatImage(path) {
   if (!path) return "";
-  if (path.startsWith("http")) return path;
-  return `${API_URL}/${path}`;
+  return path.startsWith("http") ? path : `${API_URL}/${path}`;
 }
 
-/* ⭐ SHOW DATE + HOUR + MINUTE ⭐ */
 function formatDateTime(dateStr) {
   if (!dateStr) return "";
   const d = new Date(dateStr);
@@ -193,49 +189,53 @@ function formatDateTime(dateStr) {
 
 onMounted(getMyBookings);
 </script>
-
 <style scoped>
-/* PAGE */
+/* ==================== PAGE ==================== */
 .page {
-  padding: 0px;
-  background:white;
+  padding: 0;
+  background: #ffffff;
   min-height: 100vh;
+  font-family: "Inter", sans-serif;
 }
 
-/* TITLE */
+/* ==================== PAGE TITLE ==================== */
 .page-title {
   text-align: center;
   font-size: 26px;
   color: #1e3a8a;
-  margin-bottom: 5px;
+  margin-bottom: 10px;
+  font-weight: 600;
 }
 
-/* BOOKING GRID */
+/* ==================== BOOKING GRID ==================== */
 .booking-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 20px;
+  padding: 0 15px;
 }
 
-/* BOOKING CARD */
+/* ==================== BOOKING CARD ==================== */
 .booking-card {
-  background: white;
+  background: #ffffff;
   padding: 18px;
   border-radius: 16px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
   border: 2px solid black;
-  transition: 0.25s ease;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .booking-card:hover {
   transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
-/* HEADER */
+/* ==================== HEADER ==================== */
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 10px;
 }
 
 .title {
@@ -244,34 +244,25 @@ onMounted(getMyBookings);
   font-weight: 600;
 }
 
-/* STATUS TAG COLORS */
+/* ==================== STATUS TAG COLORS ==================== */
 .status-tag {
   padding: 5px 12px;
   border-radius: 8px;
   font-size: 13px;
   font-weight: bold;
   text-transform: capitalize;
+  text-align: center;
 }
 
-.status-tag.Approved {
-  background: #d1fae5;
-  color: #065f46;
-}
+.status-tag.Approved { background: #d1fae5; color: #065f46; }
+.status-tag.Pending { background: #fef3c7; color: #92400e; }
+.status-tag.Rejected { background: #fee2e2; color: #991b1b; }
 
-.status-tag.Pending {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.status-tag.Rejected {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-/* MAIN INFO */
+/* ==================== MAIN INFO ==================== */
 .info-section p {
   margin: 6px 0;
   font-size: 14px;
+  line-height: 1.4;
 }
 
 .info-section i {
@@ -279,7 +270,46 @@ onMounted(getMyBookings);
   margin-right: 6px;
 }
 
-/* TOGGLE BUTTON */
+/* ==================== PAYMENT BUTTONS ==================== */
+.pay-btn {
+  display: inline-block;
+  padding: 8px 16px;
+  background-color: #4CAF50;
+  color: white;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  margin-top: 8px;
+  transition: background 0.25s;
+}
+
+.pay-btn:hover {
+  background-color: #256c2d;
+}
+
+.paid {
+  color: green;
+  font-weight: bold;
+  margin-top: 6px;
+}
+
+.expires {
+  color: red;
+  font-size: 0.85rem;
+  margin-top: 3px;
+  font-weight: 500;
+}
+
+/* ==================== UPLOAD PROOF ==================== */
+.upload-section {
+  margin-top: 12px;
+}
+
+.upload-section input[type="file"] {
+  margin-top: 4px;
+}
+
+/* ==================== TOGGLE BUTTON ==================== */
 .toggle-btn {
   margin-top: 12px;
   width: 100%;
@@ -290,14 +320,14 @@ onMounted(getMyBookings);
   border-radius: 10px;
   font-weight: 600;
   cursor: pointer;
-  transition: 0.25s;
+  transition: background 0.25s;
 }
 
 .toggle-btn:hover {
   background: #1e40af;
 }
 
-/* DETAILS SECTION */
+/* ==================== DETAILS SECTION ==================== */
 .details-section {
   margin-top: 12px;
   padding: 12px;
@@ -307,11 +337,12 @@ onMounted(getMyBookings);
   border: 2px solid black;
 }
 
-/* IMAGE GALLERY */
+/* ==================== IMAGE GALLERY ==================== */
 .image-row {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  margin-top: 6px;
 }
 
 .thumb {
@@ -322,15 +353,18 @@ onMounted(getMyBookings);
   border: 1px solid #ddd;
 }
 
-/* EMPTY STATE */
+/* ==================== EMPTY STATE ==================== */
 .empty-state {
   text-align: center;
   color: #6b7280;
+  padding: 20px;
+  font-size: 14px;
 }
 
-/* LOADING */
+/* ==================== LOADING ==================== */
 .loading {
   text-align: center;
+  padding: 20px;
 }
 
 .spinner {
@@ -347,7 +381,7 @@ onMounted(getMyBookings);
   to { transform: rotate(360deg); }
 }
 
-/* FADE ANIMATION */
+/* ==================== FADE ANIMATION ==================== */
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity 0.25s ease;
@@ -356,18 +390,20 @@ onMounted(getMyBookings);
 .fade-leave-to {
   opacity: 0;
 }
+
+/* ==================== RESPONSIVE ==================== */
 @media (max-width: 450px) {
   .booking-list {
     display: flex;
     flex-direction: column;
-    align-items: center; /* center the cards horizontally */
+    align-items: center;
     gap: 16px;
-    padding: 0 10px; /* equal space on left & right */
+    padding: 0 10px;
   }
 
   .booking-card {
     width: 100%;
-    max-width: 360px; /* limit card width */
+    max-width: 360px;
     padding: 14px;
   }
 
