@@ -18,7 +18,20 @@ api.interceptors.request.use((config) => {
   config.params.lang = lang;
 
   return config;
-});
+});   
+// =====================
+// Fetch all categories
+// =====================
+export async function getCategories() {
+  try {
+    const res = await api.get("/customer/categories"); // use 'api' to include baseURL + interceptors
+    // Expected response format: { categories: ["EventSupply","ConstructionEquipment","HealthcareMedical"] }
+    return res.data;
+  } catch (err) {
+    console.error("❌ Failed to fetch categories:", err);
+    throw err;
+  }
+}
 
 // ✅ Get properties by category (multi-language supported)
 export async function getPropertiesByCategory(category) {

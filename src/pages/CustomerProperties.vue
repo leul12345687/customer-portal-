@@ -2,59 +2,46 @@
   <div class="properties-page">
 
     <!-- ================= BACK BUTTON ================= -->
-    <div v-if="!showCategories" class="back-container">
+    <div v-if="showProperties" class="back-container">
       <button class="back-btn" @click="goBack">
         ← {{ t("back") }}
       </button>
     </div>
 
-    <!-- ================= SELECTED CATEGORY TITLE ================= -->
-    <h3
-      v-if="selectedCategoryLabel && (showProperties || showCustomCategories)"
-      class="selected-category-title"
-    >
-      {{ selectedCategoryLabel }}
-    </h3>
-
-    <!-- ================= MAIN CATEGORY SELECTION ================= -->
+    <!-- ================= CATEGORY LIST ================= -->
     <section v-if="showCategories" class="category-section">
-      <h2>{{ t("selectPropertiesByCategory")}}</h2>
+      <h2>{{ t("selectPropertiesByCategory") }}</h2>
 
-      <div class="category-buttons">
-        <button
+      <!-- Loading categories -->
+      <div v-if="loadingCategories" class="loading-section">
+        <div class="spinner"></div>
+        <p>{{ t("loadingCategories") }}</p>
+      </div>
+
+      <!-- Error -->
+      <p v-if="categoryError" class="error">{{ categoryError }}</p>
+
+      <!-- Category Boxes -->
+      <div v-if="!loadingCategories && categories.length" class="category-grid">
+        <div
           v-for="cat in categories"
-          :key="cat.value"
-          @click="selectCategory(cat.value)"
+          :key="cat"
+          class="category-box"
+          @click="selectCategory(cat)"
         >
-          {{ cat.label }}
-        </button>
-      </div>
-    </section>
-
-    <!-- ================= CUSTOM CATEGORY (OTHER) ================= -->
-    <section v-if="showCustomCategories" class="category-section">
-      <h2>{{ t("selectCustomCategory") }}</h2>
-
-      <div
-        v-if="customCategories.length"
-        class="custom-category-buttons"
-      >
-        <button
-          v-for="custom in customCategories"
-          :key="custom"
-          @click="selectCustomCategory(custom)"
-        >
-          {{ custom }}
-        </button>
+          <h3>{{ cat }}</h3>
+        </div>
       </div>
 
-      <p v-else class="no-custom-category">
-        {{ t("noCustomCategoryFound") }}
+      <!-- No Categories -->
+      <p v-if="!loadingCategories && !categories.length" class="no-results">
+        {{ t("noCategoriesFound") }}
       </p>
     </section>
 
     <!-- ================= PROPERTIES LIST ================= -->
     <section v-if="showProperties">
+      <h2 class="selected-category-title">{{ selectedCategoryLabel }}</h2>
 
       <!-- Loading -->
       <div v-if="loading" class="loading-section">
@@ -63,15 +50,10 @@
       </div>
 
       <!-- Error -->
-      <p v-if="error" class="error">
-        {{ error }}
-      </p>
+      <p v-if="error" class="error">{{ error }}</p>
 
       <!-- Property Cards -->
-      <div
-        v-if="!loading && properties.length"
-        class="property-list"
-      >
+      <div v-if="!loading && properties.length" class="property-list">
         <article
           v-for="(property, index) in properties"
           :key="property._id || index"
@@ -79,36 +61,22 @@
         >
           <!-- Image -->
           <img
-            v-if="property.imageUrls?.length"
-            :src="property.imageUrls[0]"
+            :src="property.imageUrls?.[0] || defaultImage"
             class="property-img"
             alt="Property image"
           />
 
-          <div v-else class="no-image">
-            {{ t("noImage") }}
-          </div>
-
           <!-- Property Info -->
           <h3>{{ property.name }}</h3>
           <p class="desc">{{ property.description }}</p>
-
-          <p>
-            <strong>{{ t("numberOfProperty") }}:</strong>
-            {{ property.numberOfProperty }}
-          </p>
-
-          <p>
-            <strong>{{ t("category") }}:</strong>
-            {{ property.category }}
-          </p>
+          <p><strong>{{ t("numberOfProperty") }}:</strong> {{ property.numberOfProperty }}</p>
+          <p><strong>{{ t("category") }}:</strong> {{ property.category }}</p>
 
           <!-- Actions -->
           <div class="btn-group">
             <button class="book-btn" @click="bookNow(property)">
               {{ t("bookNow") }}
             </button>
-
             <button class="detail-btn" @click="toggleDetails(index)">
               {{ expanded[index] ? t("hideDetails") : t("viewDetails") }}
             </button>
@@ -118,20 +86,19 @@
           <transition name="fade">
             <div v-if="expanded[index]" class="details">
               <h4>{{ t("merchantInfo") }}</h4>
-
-              <p><strong>{{ t("merchantName") }}:</strong> {{ property.merchant.name }}</p>
-              <p><strong>{{ t("merchantEmail") }}:</strong> {{ property.merchant.email }}</p>
-              <p><strong>{{ t("merchantPhone") }}:</strong> {{ property.merchant.phone }}</p>
-              <p><strong>{{ t("businessName") }}:</strong> {{ property.merchant.businessName }}</p>
-              <p><strong>{{ t("accountNumber") }}:</strong> {{ property.merchant.acountnumber }}</p>
+              <p><strong>{{ t("merchantName") }}:</strong> {{ property.merchant?.name || "N/A" }}</p>
+              <p><strong>{{ t("merchantEmail") }}:</strong> {{ property.merchant?.email || "N/A" }}</p>
+              <p><strong>{{ t("merchantPhone") }}:</strong> {{ property.merchant?.phone || "N/A" }}</p>
+              <p><strong>{{ t("businessName") }}:</strong> {{ property.merchant?.businessName || "N/A" }}</p>
+              <p><strong>{{ t("accountNumber") }}:</strong> {{ property.merchant?.acountnumber || "N/A" }}</p>
 
               <h4>{{ t("rentalDetails") }}</h4>
               <ul>
-                <li><strong>Per Hour:</strong> {{ property.rentalPrice.perHour }}</li>
-                <li><strong>Per Day:</strong> {{ property.rentalPrice.perDay }}</li>
-                <li><strong>Per Week:</strong> {{ property.rentalPrice.perWeek }}</li>
-                <li><strong>Per Month:</strong> {{ property.rentalPrice.perMonth }}</li>
-                <li><strong>Per Year:</strong> {{ property.rentalPrice.perYear }}</li>
+                <li><strong>Per Hour:</strong> {{ property.rentalPrice?.perHour || "-" }}</li>
+                <li><strong>Per Day:</strong> {{ property.rentalPrice?.perDay || "-" }}</li>
+                <li><strong>Per Week:</strong> {{ property.rentalPrice?.perWeek || "-" }}</li>
+                <li><strong>Per Month:</strong> {{ property.rentalPrice?.perMonth || "-" }}</li>
+                <li><strong>Per Year:</strong> {{ property.rentalPrice?.perYear || "-" }}</li>
               </ul>
 
               <h4>{{ t("bookings") }}</h4>
@@ -140,21 +107,17 @@
                   {{ t("from") }} {{ formatDateTime(b.startDate) }}
                   {{ t("to") }} {{ formatDateTime(b.endDate) }}
                   — {{ b.numberOfProperty }} {{ t("booked") }}
-                  ({{ b.status }})
+                  <span class="booking-status">({{ b.status }})</span>
                 </li>
               </ul>
-
               <p v-else>{{ t("noBookings") }}</p>
             </div>
           </transition>
         </article>
       </div>
 
-      <!-- No Results -->
-      <p
-        v-if="!loading && !properties.length && !error"
-        class="no-results"
-      >
+      <!-- No Properties -->
+      <p v-if="!loading && !properties.length && !error" class="no-results">
         {{ t("noPropertiesFound") }}
       </p>
     </section>
@@ -163,30 +126,22 @@
     <transition name="prompt-fade">
       <div v-if="showLoginPrompt" class="login-prompt-overlay">
         <div class="message-box">
-          <span class="close-btn" @click="showLoginPrompt = false">
-            &times;
-          </span>
-
+          <span class="close-btn" @click="showLoginPrompt = false">&times;</span>
           <h3>{{ t("loginRequiredTitle") }}</h3>
           <p>{{ t("loginRequiredMessage") }}</p>
-
-          <button
-            class="redirect-btn"
-            @click="goToLoginAndClearPrompt"
-          >
+          <button class="redirect-btn" @click="goToLoginAndClearPrompt">
             {{ t("loginOrRegister") }}
           </button>
         </div>
       </div>
     </transition>
-
   </div>
 </template>
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
-import { getPropertiesByCategory } from "../services/propertyService.js";
+import { getPropertiesByCategory, getCategories } from "../services/propertyService.js";
 
 const { t } = useI18n();
 const router = useRouter();
@@ -195,65 +150,64 @@ const router = useRouter();
    UI STATES
 ===================================================== */
 const showCategories = ref(true);
-const showCustomCategories = ref(false);
 const showProperties = ref(false);
 const showLoginPrompt = ref(false);
-
-/* =====================================================
-   DATA STATES
-===================================================== */
-const categories = [
-  { value: "EventSupply", label: "Event Supply" },
-  { value: "ConstructionEquipment", label: "Construction Equipment" },
-  { value: "HealthcareMedical", label: "Healthcare & Medical" },
-  { value: "Other", label: "Other" },
-];
-
-const category = ref("");
-const selectedCustomCategory = ref("");
-const properties = ref([]);
-const customCategories = ref([]);
+const loadingCategories = ref(false);
+const categoryError = ref("");
 const loading = ref(false);
 const error = ref("");
 const expanded = ref({});
 
 /* =====================================================
+   DATA STATES
+===================================================== */
+const categories = ref([]);
+const category = ref("");
+const properties = ref([]);
+const defaultImage = "/images/default-property.png"; // fallback image
+
+/* =====================================================
    SELECTED CATEGORY TITLE
 ===================================================== */
-const selectedCategoryLabel = computed(() => {
-  if (selectedCustomCategory.value) return selectedCustomCategory.value;
-  const found = categories.find((c) => c.value === category.value);
-  return found ? found.label : "";
-});
+const selectedCategoryLabel = computed(() => category.value);
+
+/* =====================================================
+   FETCH CATEGORIES FROM BACKEND
+===================================================== */
+async function loadCategories() {
+  loadingCategories.value = true;
+  categoryError.value = "";
+  try {
+    const res = await getCategories(); // backend endpoint returning unique categories
+    categories.value = res.categories || [];
+  } catch (err) {
+    categoryError.value = t("failedToLoadCategories");
+  } finally {
+    loadingCategories.value = false;
+  }
+}
 
 /* =====================================================
    CATEGORY SELECTION
 ===================================================== */
 async function selectCategory(cat) {
   category.value = cat;
-  selectedCustomCategory.value = "";
   showCategories.value = false;
-
-  if (cat === "Other") {
-    await loadCustomCategories();
-  } else {
-    showProperties.value = true;
-    await fetchProperties(cat);
-  }
+  showProperties.value = true;
+  await fetchProperties(cat);
 }
 
 /* =====================================================
-   LOAD NORMAL CATEGORIES
+   FETCH PROPERTIES FOR SELECTED CATEGORY
 ===================================================== */
-async function fetchProperties(cat, customCat = "") {
+async function fetchProperties(cat) {
   loading.value = true;
   error.value = "";
   properties.value = [];
 
   try {
     const lang = localStorage.getItem("lang") || "en";
-    // Pass customCategory if defined
-    const res = await getPropertiesByCategory(cat, lang, customCat || undefined);
+    const res = await getPropertiesByCategory(cat, lang);
     properties.value = res.properties || [];
   } catch (err) {
     error.value = err.response?.data?.message || t("failedToLoadProperties");
@@ -263,53 +217,12 @@ async function fetchProperties(cat, customCat = "") {
 }
 
 /* =====================================================
-   LOAD CUSTOM CATEGORIES (OTHER)
-===================================================== */
-async function loadCustomCategories() {
-  loading.value = true;
-  showCustomCategories.value = true;
-  showProperties.value = false;
-  error.value = "";
-
-  try {
-    const lang = localStorage.getItem("lang") || "en";
-    const res = await getPropertiesByCategory("Other", lang);
-    const allOtherProperties = res.properties || [];
-
-    // extract unique custom categories
-    const set = new Set();
-    allOtherProperties.forEach((p) => {
-      if (p.customCategory) set.add(p.customCategory);
-    });
-    customCategories.value = [...set];
-  } catch (err) {
-    error.value = err.response?.data?.message || t("failedToLoadProperties");
-  } finally {
-    loading.value = false;
-  }
-}
-
-/* =====================================================
-   SELECT CUSTOM CATEGORY
-===================================================== */
-async function selectCustomCategory(customCat) {
-  selectedCustomCategory.value = customCat;
-  showCustomCategories.value = false;
-  showProperties.value = true;
-
-  // Fetch properties for the selected custom category from backend
-  await fetchProperties("Other", customCat);
-}
-
-/* =====================================================
-   NAVIGATION
+   BACK NAVIGATION
 ===================================================== */
 function goBack() {
   showCategories.value = true;
-  showCustomCategories.value = false;
   showProperties.value = false;
   category.value = "";
-  selectedCustomCategory.value = "";
   properties.value = [];
   expanded.value = {};
   error.value = "";
@@ -328,31 +241,26 @@ function toggleDetails(index) {
 function bookNow(property) {
   const token = localStorage.getItem("token");
 
+  const bookingData = {
+    assetName: property.name,
+    merchantEmail: property.merchant?.email || "",
+  };
+
   if (!token) {
+    sessionStorage.setItem("pendingBooking", JSON.stringify(bookingData));
     showLoginPrompt.value = true;
-    sessionStorage.setItem(
-      "pendingBooking",
-      JSON.stringify({
-        assetName: property.name,
-        merchantEmail: property.merchant.email,
-        numberOfProperty: property.numberOfProperty,
-        merchantAccount: property.merchant.acountnumber,
-      })
-    );
     return;
   }
 
   router.push({
     path: "/app/booking",
-    query: {
-      assetName: property.name,
-      merchantEmail: property.merchant.email,
-      numberOfProperty: property.numberOfProperty,
-      merchantAccount: property.merchant.acountnumber,
-    },
+    query: bookingData,
   });
 }
 
+/* =====================================================
+   LOGIN PROMPT
+===================================================== */
 function goToLoginAndClearPrompt() {
   showLoginPrompt.value = false;
   router.push("/login");
@@ -372,43 +280,32 @@ function formatDateTime(dateStr) {
     minute: "2-digit",
   });
 }
+
+/* =====================================================
+   LOAD CATEGORIES ON MOUNT
+===================================================== */
+onMounted(() => {
+  loadCategories();
+});
 </script>
-
-
 <style scoped>
-/* ===== BACK BUTTON ===== */
 
-/* ===== SELECTED CATEGORY TITLE ===== */
-.selected-category-title {
+/* ================= PAGE BASE ================= */
+.properties-page {
+  padding: 12px;
+  background: white;
+  min-height: 100vh;
+  max-width: 1100px;
+  margin: auto;
+}
+
+h2 {
   text-align: center;
-  margin: 8px auto 18px;
-  font-size: 18px;
-  font-weight: 700;
   color: #1e3a8a;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-  max-width: 90%;
+  margin-bottom: 20px;
 }
 
-/* subtle divider for clarity */
-.selected-category-title::after {
-  content: "";
-  display: block;
-  width: 60px;
-  height: 3px;
-  background: #1e3a8a;
-  margin: 6px auto 0;
-  border-radius: 2px;
-}
-
-/* ===== MOBILE OPTIMIZATION ===== */
-@media (max-width: 480px) {
-  .selected-category-title {
-    font-size: 16px;
-    margin-bottom: 14px;
-  }
-}
-
+/* ================= BACK BUTTON ================= */
 .back-container {
   margin-bottom: 15px;
 }
@@ -421,124 +318,99 @@ function formatDateTime(dateStr) {
   border: none;
   font-weight: 600;
   cursor: pointer;
+  transition: 0.2s ease;
 }
+
 .back-btn:hover {
   background: #162f6b;
 }
 
-/* ===== PAGE BASE ===== */
-.properties-page {
-  padding: 10px;
-  background: white;
-  min-height: 100vh;
-}
-h2 {
+/* ================= SELECTED CATEGORY TITLE ================= */
+.selected-category-title {
   text-align: center;
-  color: #1e3a8a;
-  margin-bottom: 20px;
-}/* ===== CATEGORY BUTTONS (RESPONSIVE) ===== */
-.category-buttons {
+  margin: 8px auto 18px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #7a8a1e;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  max-width: 90%;
+}
+
+.selected-category-title::after {
+  content: "";
+  display: block;
+  width: 60px;
+  height: 3px;
+  background: #a9ac12;
+  margin: 6px auto 0;
+  border-radius: 2px;
+}
+
+/* ================= CATEGORY GRID ================= */
+.category-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
   padding: 10px;
-  max-width: 480px;
+  max-width: 600px;
   margin: 0 auto;
 }
 
-.category-buttons button {
-  aspect-ratio: 1 / 1; /* always square */
-  width: 100%;
+/* ================= CATEGORY BOX ================= */
+.category-box {
+  background: white;
   border: 2px solid #1e3a8a;
-  background: #ffffff;
-  color: #1e3a8a;
-  font-weight: 700;
   border-radius: 12px;
+  padding: 18px 10px;
+  text-align: center;
   cursor: pointer;
 
   display: flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
 
+  font-weight: 700;
+  color: #1e3a8a;
   font-size: 14px;
   line-height: 1.2;
-  padding: 6px;
 
-  transition: all 0.2s ease;
+  transition: all 0.25s ease;
 }
 
-.category-buttons button:hover {
-  background: #1e3a8a;
-  color: #ffffff;
-  transform: translateY(-2px);
+/* Hover effect */
+.category-box:hover {
+  background: rgba(187, 175, 12, 0.75);
+  color: white;
+  transform: translateY(-4px);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.15);
 }
 
-.category-buttons button:active {
+.category-box:active {
   transform: scale(0.96);
 }
-/* ===== CUSTOM CATEGORY BUTTONS ===== */
-.custom-category-buttons {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-  gap: 10px;
-  padding: 10px;
-  max-width: 420px;
-  margin: 0 auto;
-}
 
-.custom-category-buttons button {
-  aspect-ratio: 1 / 1;
-  width: 100%;
-  border: 2px dashed #0f766e;
-  background: #ecfdf5;
-  color: #0f766e;
-  font-weight: 600;
-  border-radius: 10px;
-  cursor: pointer;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  font-size: 12px;
-  padding: 4px;
-
-  transition: all 0.2s ease;
-}
-
-.custom-category-buttons button:hover {
-  background: #0f766e;
-  color: #ffffff;
-}
-
-.custom-category-buttons button:active {
-  transform: scale(0.95);
-}
-
-
-/* ===== NO CUSTOM CATEGORY MESSAGE ===== */
-.no-custom-category {
-  text-align: center;
-  color: #6b7280;
-  font-style: italic;
-  margin-top: 20px;
-}
-
-/* ===== PROPERTY CARDS ===== */
+/* ================= PROPERTY LIST ================= */
 .property-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
   gap: 20px;
 }
 
+/* ================= PROPERTY CARD ================= */
 .property-card {
   background: white;
-  border: 2px solid black;
+  border: 2px solid #e5e7eb;
   padding: 15px;
   border-radius: 14px;
+  transition: 0.2s ease;
 }
 
+.property-card:hover {
+  box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+}
+
+/* ================= PROPERTY IMAGE ================= */
 .property-img {
   width: 100%;
   height: 200px;
@@ -554,17 +426,20 @@ h2 {
   align-items: center;
 }
 
+/* ================= DESCRIPTION ================= */
 .desc {
   color: #555;
+  margin: 6px 0;
 }
 
-/* ===== BUTTONS ===== */
+/* ================= BUTTON GROUP ================= */
 .btn-group {
   display: flex;
   gap: 10px;
   margin-top: 8px;
 }
 
+/* ================= BOOK BUTTON ================= */
 .book-btn {
   flex: 1;
   background: #10b981;
@@ -572,7 +447,16 @@ h2 {
   border-radius: 8px;
   padding: 10px;
   cursor: pointer;
+  border: none;
+  font-weight: 600;
+  transition: 0.2s ease;
 }
+
+.book-btn:hover {
+  background: #059669;
+}
+
+/* ================= DETAIL BUTTON ================= */
 .detail-btn {
   flex: 1;
   background: #1e3a8a;
@@ -580,17 +464,25 @@ h2 {
   border-radius: 8px;
   padding: 10px;
   cursor: pointer;
+  border: none;
+  font-weight: 600;
+  transition: 0.2s ease;
 }
 
-/* ===== DETAILS ===== */
+.detail-btn:hover {
+  background: #162f6b;
+}
+
+/* ================= PROPERTY DETAILS ================= */
 .details {
   background: #f3f4f6;
-  padding: 10px;
+  padding: 12px;
   border-radius: 8px;
   margin-top: 10px;
+  font-size: 14px;
 }
 
-/* ===== LOGIN PROMPT ===== */
+/* ================= LOGIN PROMPT ================= */
 .login-prompt-overlay {
   position: fixed;
   inset: 0;
@@ -599,19 +491,29 @@ h2 {
   justify-content: center;
   align-items: center;
 }
+
 .message-box {
   background: white;
   padding: 28px;
   border-radius: 12px;
   text-align: center;
   position: relative;
+  width: 90%;
+  max-width: 350px;
 }
+
 .redirect-btn {
   background: #2563eb;
   color: white;
   padding: 10px 18px;
   border: none;
   border-radius: 8px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.redirect-btn:hover {
+  background: #1d4ed8;
 }
 
 .close-btn {
@@ -619,5 +521,26 @@ h2 {
   right: 15px;
   top: 10px;
   cursor: pointer;
+  font-size: 20px;
 }
+
+/* ================= MOBILE OPTIMIZATION ================= */
+@media (max-width: 480px) {
+
+  .selected-category-title {
+    font-size: 16px;
+    margin-bottom: 14px;
+  }
+
+  .property-img {
+    height: 180px;
+  }
+
+  .category-box {
+    font-size: 13px;
+    padding: 14px 8px;
+  }
+
+}
+
 </style>
