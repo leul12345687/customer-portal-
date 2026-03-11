@@ -381,7 +381,7 @@ h2 {
 /* Hover effect */
 .category-box:hover {
   background: rgba(187, 175, 12, 0.75);
-  color: white;
+  color: green;
   transform: translateY(-4px);
   box-shadow: 0 8px 18px rgba(0,0,0,0.15);
 }

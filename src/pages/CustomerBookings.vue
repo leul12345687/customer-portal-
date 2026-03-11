@@ -90,13 +90,14 @@
       <p>{{ t("noBookings") }}</p>
     </div>
   </div>
-</template><script setup>
+</template>
+<script setup>
 import { ref, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
 import axios from "axios";
 
 const { t } = useI18n();
-const API_URL = "https://lmgtech-9v5x.onrender.com";
+const API_URL = "https://lmgtech-4.onrender.com";
 const token = localStorage.getItem("token");
 
 const bookings = ref([]);
