@@ -43,6 +43,36 @@
     <section v-if="showProperties">
       <h2 class="selected-category-title">{{ selectedCategoryLabel }}</h2>
 
+      <!-- ================= SEARCH FORM ================= -->
+      <div class="search-bar">
+        <h3>{{ t("filterProperties") }}</h3>
+        <div class="search-fields">
+
+          <input
+            type="text"
+            v-model="searchForm.name"
+            placeholder="Name"
+          />
+
+          <input
+  type="number"
+  v-model.number="searchForm.rentalPricePerMonth"
+  placeholder="Max Rental Price per Month"
+  min="0"
+/>
+
+          <input
+            type="text"
+            v-model="searchForm.location"
+            placeholder="Location"
+          />
+
+          <button @click="applySearch">{{ t("search") }}</button>
+          <button @click="resetSearch">{{ t("reset") }}</button>
+
+        </div>
+      </div>
+
       <!-- Loading -->
       <div v-if="loading" class="loading-section">
         <div class="spinner"></div>
@@ -164,7 +194,17 @@ const expanded = ref({});
 const categories = ref([]);
 const category = ref("");
 const properties = ref([]);
+const allProperties = ref([]); // Keep original fetched list for reset
 const defaultImage = "/images/default-property.png"; // fallback image
+
+/* =====================================================
+   SEARCH FORM STATE
+===================================================== */
+const searchForm = ref({
+  name: "",
+  rentalPricePerMonth: null,
+  location: "",
+});
 
 /* =====================================================
    SELECTED CATEGORY TITLE
@@ -178,7 +218,7 @@ async function loadCategories() {
   loadingCategories.value = true;
   categoryError.value = "";
   try {
-    const res = await getCategories(); // backend endpoint returning unique categories
+    const res = await getCategories();
     categories.value = res.categories || [];
   } catch (err) {
     categoryError.value = t("failedToLoadCategories");
@@ -204,16 +244,53 @@ async function fetchProperties(cat) {
   loading.value = true;
   error.value = "";
   properties.value = [];
+  allProperties.value = [];
 
   try {
     const lang = localStorage.getItem("lang") || "en";
     const res = await getPropertiesByCategory(cat, lang);
     properties.value = res.properties || [];
+    allProperties.value = [...properties.value]; // Save original list for search/reset
   } catch (err) {
     error.value = err.response?.data?.message || t("failedToLoadProperties");
   } finally {
     loading.value = false;
   }
+}
+/* =====================================================
+   SEARCH / FILTER PROPERTIES (FINAL FIXED VERSION)
+===================================================== */
+
+function applySearch() {
+  const name = searchForm.value.name?.trim().toLowerCase();
+  const location = searchForm.value.location?.trim().toLowerCase();
+  const rentalPrice = searchForm.value.rentalPricePerMonth;
+
+  properties.value = allProperties.value.filter((property) => {
+
+    // ===== NAME FILTER =====
+    if (name && !property.name?.toLowerCase().includes(name)) {
+      return false;
+    }
+
+    // ===== LOCATION FILTER =====
+    if (location && !property.location?.toLowerCase().includes(location)) {
+      return false;
+    }
+
+    // ===== PRICE FILTER (MATCHES BACKEND STRUCTURE) =====
+    if (rentalPrice != null && rentalPrice !== "") {
+      const price = Number(property.rentalPrice?.perMonth);
+
+      // If no price or invalid → exclude
+      if (isNaN(price) || price > rentalPrice) {
+        return false;
+      }
+    }
+
+    // ✅ PASSES ALL ACTIVE FILTERS
+    return true;
+  });
 }
 
 /* =====================================================
@@ -224,8 +301,14 @@ function goBack() {
   showProperties.value = false;
   category.value = "";
   properties.value = [];
+  allProperties.value = [];
   expanded.value = {};
   error.value = "";
+  searchForm.value = {
+    name: "",
+    rentalPricePerMonth: null,
+    location: "",
+  };
 }
 
 /* =====================================================
@@ -288,6 +371,7 @@ onMounted(() => {
   loadCategories();
 });
 </script>
+
 <style scoped>
 
 /* ================= PAGE BASE ================= */
@@ -491,7 +575,74 @@ h2 {
   justify-content: center;
   align-items: center;
 }
+/* ================= SEARCH BAR ================= */
+.search-bar {
+  background: #f9fafb;
+  padding: 12px 16px;
+  margin: 20px auto;
+  border-radius: 10px;
+  max-width: 900px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid #e5e7eb;
+}
 
+.search-bar h3 {
+  margin: 0 0 6px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e3a8a;
+}
+
+.search-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.search-fields input {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  font-size: 14px;
+}
+
+.search-fields button {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.2s ease;
+}
+
+.search-fields button:hover {
+  background: #1d4ed8;
+}
+
+.search-fields button:last-child {
+  background: #6b7280;
+}
+
+.search-fields button:last-child:hover {
+  background: #4b5563;
+}
+
+/* ================= MOBILE OPTIMIZATION FOR SEARCH ================= */
+@media (max-width: 480px) {
+  .search-fields {
+    flex-direction: column;
+  }
+
+  .search-fields input,
+  .search-fields button {
+    width: 100%;
+  }
+}
 .message-box {
   background: white;
   padding: 28px;
