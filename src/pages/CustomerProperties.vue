@@ -291,6 +291,16 @@ function applySearch() {
     // ✅ PASSES ALL ACTIVE FILTERS
     return true;
   });
+}   function resetSearch() {
+  // Reset form inputs
+  searchForm.value = {
+    name: "",
+    rentalPricePerMonth: null,
+    location: "",
+  };
+
+  // Restore original full list
+  properties.value = [...allProperties.value];
 }
 
 /* =====================================================
@@ -430,46 +440,54 @@ h2 {
   margin: 6px auto 0;
   border-radius: 2px;
 }
-
 /* ================= CATEGORY GRID ================= */
 .category-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 14px;
-  padding: 10px;
-  max-width: 600px;
-  margin: 0 auto;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px;
+  margin-top: 20px;
 }
 
-/* ================= CATEGORY BOX ================= */
+/* ================= CATEGORY CARD ================= */
 .category-box {
-  background: white;
-  border: 2px solid #1e3a8a;
-  border-radius: 12px;
-  padding: 18px 10px;
+  background: #aebdb03f;
+  border-radius: 16px;
+  padding: 25px 15px;
   text-align: center;
   cursor: pointer;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  /* Soft shadow */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
 
-  font-weight: 700;
-  color: #1e3a8a;
-  font-size: 14px;
-  line-height: 1.2;
+  /* Smooth animation */
+  transition: all 0.3s ease;
 
-  transition: all 0.25s ease;
+  /* Subtle border */
+  border: 1px solid #f1f1f138;
 }
 
 /* Hover effect */
 .category-box:hover {
-  background: rgba(187, 175, 12, 0.75);
-  color: green;
-  transform: translateY(-4px);
-  box-shadow: 0 8px 18px rgba(0,0,0,0.15);
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12);
+  border-color: #3b82f6;
 }
 
+/* Text */
+.category-box h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e3a8a;
+  margin: 0;
+}
+
+/* Optional subtle icon space */
+.category-box::before {
+  
+  display: block;
+  font-size: 28px;
+  margin-bottom: 10px;
+}
 .category-box:active {
   transform: scale(0.96);
 }
