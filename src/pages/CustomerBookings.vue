@@ -2,11 +2,9 @@
   <div class="page">
     <div class="page-header">
       <div class="header-copy">
-        <p class="breadcrumb">Home / {{ t("myBookings") }}</p>
-        <h1>{{ t("myBookings") }}</h1>
-        <p class="header-subtitle">
-          {{ t("manageYourBookingsDescription") || "Review upcoming reservations, payments and booking details in one place." }}
-        </p>
+        <p class="breadcrumb"></p>
+        <h3>{{ t("myBookings") }}</h3>
+        
       </div>
 
       <div class="header-actions">
@@ -52,9 +50,7 @@
             </p>
           </div>
 
-          <span class="status-pill" :class="statusClass(b.status)">
-            {{ b.status }}
-          </span>
+         
         </div>
 
         <div class="card-body">

@@ -12,11 +12,9 @@
     <section v-if="showCategories" class="category-section">
       <div class="category-hero">
         <div class="hero-copy">
-          <p class="hero-label">{{ t("welcome") || "Welcome to LMG Tech" }}</p>
-          <h2>{{ t("selectPropertiesByCategory") }}</h2>
-          <p class="hero-subtitle">
-            {{ t("browseCategoryDescription") || "Search and choose a category to see available properties." }}
-          </p>
+       
+          <h4>{{ t("selectPropertiesByCategory") }}</h4>
+         
         </div>
 
         <div class="hero-search">
