@@ -37,9 +37,18 @@
           {{ loading ? t("loggingIn") : t("login") }}
         </button>
 
+        <!-- OR divider -->
+        <div class="or-divider">{{ t("or") }}</div>
+
+        <!-- Google login -->
+        <button type="button" class="google-btn" @click="handleGoogleLogin">
+          {{ t("loginWithGoogle") }}
+        </button>
+
         <!-- Messages -->
         <p v-if="message" class="success-msg">{{ message }}</p>
         <p v-if="error" class="error-msg">{{ error }}</p>
+        <p v-if="googleError" class="error-msg">{{ googleError }}</p>
       </form>
 
       <!-- Register Link -->
@@ -54,34 +63,25 @@
 </template>
 <script setup>
 import { ref, onMounted } from "vue";
-import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { loginCustomer } from "../services/customerService.js";
-// ✅ Import reactive authState
 import { login as authLogin } from "../authState.js";
 
-// --------------------------
-// i18n setup
-// --------------------------
 const { t, locale } = useI18n();
-const router = useRouter();
 
-// --------------------------
-// Form state
-// --------------------------
 const form = ref({ email: "", password: "" });
 const loading = ref(false);
 const message = ref("");
 const error = ref("");
+const googleError = ref("");
 const showPassword = ref(false);
-
-// --------------------------
-// Language management
-// --------------------------
+const currentGoogleAction = ref("");
+const googleSdkLoaded = ref(false);
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID";
 const currentLang = ref(localStorage.getItem("lang") || "en");
 
 onMounted(() => {
-  locale.value = currentLang.value; // Ensure UI reflects current language
+  locale.value = currentLang.value;
 });
 
 function changeLang() {
@@ -89,16 +89,134 @@ function changeLang() {
   locale.value = currentLang.value;
 }
 
-// --------------------------
-// Toggle password visibility
-// --------------------------
 function togglePassword() {
   showPassword.value = !showPassword.value;
 }
 
-// --------------------------
-// Handle login
-// --------------------------
+function loadGoogleSdk() {
+  return new Promise((resolve, reject) => {
+    if (window.google?.accounts?.id) {
+      googleSdkLoaded.value = true;
+      return resolve();
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      googleSdkLoaded.value = true;
+      resolve();
+    };
+    script.onerror = () => reject(new Error("Failed to load Google SDK"));
+    document.head.appendChild(script);
+  });
+}
+
+function initGoogleSdk() {
+  if (!googleSdkLoaded.value || !window.google?.accounts?.id) return;
+
+  window.google.accounts.id.initialize({
+    client_id: googleClientId,
+    callback: handleGoogleCredentialResponse,
+    auto_select: false,
+  });
+}
+
+function promptGoogleSignIn() {
+  if (!googleClientId || googleClientId === "YOUR_GOOGLE_CLIENT_ID") {
+    googleError.value = t("googleAuthUrlMissing");
+    return;
+  }
+
+  if (!googleSdkLoaded.value) {
+    loadGoogleSdk()
+      .then(() => {
+        initGoogleSdk();
+        window.google.accounts.id.prompt();
+      })
+      .catch((err) => {
+        console.error(err);
+        googleError.value = t("googleSdkLoadFailed");
+      });
+    return;
+  }
+
+  initGoogleSdk();
+  window.google.accounts.id.prompt();
+}
+
+function parseJwt(token) {
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
+    );
+    return JSON.parse(jsonPayload);
+  } catch (error) {
+    return null;
+  }
+}
+
+async function handleGoogleCredentialResponse(response) {
+  if (!response?.credential) {
+    googleError.value = t("googleAuthFailed");
+    loading.value = false;
+    return;
+  }
+
+  const payload = parseJwt(response.credential);
+  if (!payload?.sub) {
+    googleError.value = t("googleAuthFailed");
+    loading.value = false;
+    return;
+  }
+
+  const credentials = {
+    googleId: payload.sub,
+    provider: "google",
+    email: payload.email,
+  };
+
+  try {
+    loading.value = true;
+    error.value = "";
+    const lang = localStorage.getItem("lang") || "en";
+    const res = await loginCustomer(credentials, lang);
+
+    if (!res?.token) {
+      googleError.value = res?.message || t("invalidCredentials");
+      return;
+    }
+
+    authLogin(res.token, res.user);
+    message.value = res.message;
+
+    const pending = sessionStorage.getItem("pendingBooking");
+    if (pending) {
+      const bookingData = JSON.parse(pending);
+      sessionStorage.removeItem("pendingBooking");
+
+      setTimeout(() => {
+        window.location.href = "/#/app/booking?" + new URLSearchParams(bookingData).toString();
+      }, 300);
+      return;
+    }
+
+    setTimeout(() => {
+      window.location.href = "/#/app/dashboard";
+    }, 300);
+  } catch (err) {
+    googleError.value = err.response?.data?.message || err.message || t("googleLoginFailed");
+  } finally {
+    loading.value = false;
+  }
+}
+
 async function handleLogin() {
   loading.value = true;
   message.value = "";
@@ -113,41 +231,36 @@ async function handleLogin() {
       return;
     }
 
-    // ✅ 1. Persist auth FIRST
     authLogin(res.token, res.user);
-
-    // ✅ 2. Force token flush (important on slow Wi-Fi)
     await new Promise((r) => setTimeout(r, 100));
-
     message.value = res.message;
 
-    // ✅ 3. Booking redirect (soft)
     const pending = sessionStorage.getItem("pendingBooking");
     if (pending) {
       const bookingData = JSON.parse(pending);
       sessionStorage.removeItem("pendingBooking");
 
       setTimeout(() => {
-        window.location.href =
-          "/#/app/booking?" + new URLSearchParams(bookingData).toString();
+        window.location.href = "/#/app/booking?" + new URLSearchParams(bookingData).toString();
       }, 300);
-
       return;
     }
 
-    // ✅ 4. DASHBOARD — HARD GUARANTEED REDIRECT
     setTimeout(() => {
       window.location.href = "/#/app/dashboard";
     }, 300);
-
   } catch (err) {
-    error.value =
-      err.response?.data?.message || err.message || t("loginFailed");
+    error.value = err.response?.data?.message || err.message || t("loginFailed");
   } finally {
     loading.value = false;
   }
 }
 
+function handleGoogleLogin() {
+  googleError.value = "";
+  currentGoogleAction.value = "login";
+  promptGoogleSignIn();
+}
 </script>
 
 
@@ -254,11 +367,28 @@ h2 {
   background-color: #1e40af;
 }
 
-.success-msg {
-  color: #16a34a;
-  text-align: center;
-  font-weight: 500;
-}
+  .or-divider {
+    margin: 8px 0;
+    text-align: center;
+    color: #6b7280;
+    font-weight: 600;
+  }
+
+  .google-btn {
+    background-color: #4285f4;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.25s ease;
+  }
+
+  .google-btn:hover {
+    background-color: #3367d6;
+  }
 
 .error-msg {
   color: #dc2626;
@@ -276,3 +406,5 @@ h2 {
   font-weight: 600;
 }
 </style>
+
+

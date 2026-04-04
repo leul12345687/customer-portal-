@@ -43,6 +43,16 @@ export async function registerCustomer(formData) {
   }
 }
 
+export async function registerCustomerJson(payload) {
+  try {
+    const response = await api.post("/register", payload);
+    return response.data;
+  } catch (error) {
+    console.error("Registration error:", error);
+    throw error.response?.data || error;
+  }
+}
+
 // ===========================================================
 // ✅ LOGIN CUSTOMER (supports multi-language)
 // ===========================================================
