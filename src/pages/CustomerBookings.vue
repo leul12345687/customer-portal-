@@ -143,7 +143,7 @@ import { useI18n } from "vue-i18n";
 import axios from "axios";
 
 const { t } = useI18n();
-const API_URL = "https://lmgtech-4.onrender.com";
+const API_URL = "https://lmgtech-e1q0.onrender.com";
 const token = localStorage.getItem("token");
 
 const bookings = ref([]);

@@ -2,8 +2,8 @@
   <div class="properties-page">
 
     <!-- ================= BACK BUTTON ================= -->
-    <div v-if="showProperties" class="back-container">
-      <button class="back-btn" @click="goBack">
+    <div v-if="showProperties" class="back-container" role="navigation" aria-label="Back navigation">
+      <button type="button" class="back-btn" @click="goBack" aria-label="Back">
         ← {{ t("back") }}
       </button>
     </div>
@@ -18,11 +18,16 @@
         </div>
 
         <div class="hero-search">
-          <input
-            type="text"
-            v-model="searchCategory"
-            placeholder="Search Properties"
-          />
+          <div class="search-hero-wrapper">
+            <span class="search-icon" aria-hidden="true">🔍</span>
+            <input
+              type="text"
+              v-model="searchCategory"
+              placeholder="Search all properties..."
+              aria-label="Search categories"
+              class="search-hero-input"
+            />
+          </div>
         </div>
       </div>
 
@@ -43,9 +48,17 @@
           class="category-box"
           @click="selectCategory(cat)"
         >
-          <div class="category-icon">{{ categoryIcon(cat) }}</div>
+          <div class="category-icon">
+            <img
+              v-if="categoryImages[cat]"
+              :src="categoryImages[cat]"
+              :alt="cat + ' image'"
+              loading="lazy"
+            />
+            <div v-else class="category-emoji">{{ categoryIcon(cat) }}</div>
+          </div>
           <h3>{{ cat }}</h3>
-          <span class="category-meta">{{ t("seeListings") || "See listings" }}</span>
+          <span class="category-meta">{{ t("seeListings") || "View Listings" }}</span>
         </div>
       </div>
 
@@ -64,27 +77,36 @@
         <h3>{{ t("filterProperties") }}</h3>
         <div class="search-fields">
 
+          <label class="sr-only" for="search-name">Name</label>
           <input
+            id="search-name"
             type="text"
             v-model="searchForm.name"
             placeholder="Name"
+            aria-label="Property name"
           />
 
+          <label class="sr-only" for="search-price">Max rental price per month</label>
           <input
-  type="number"
-  v-model.number="searchForm.rentalPricePerMonth"
-  placeholder="Max Rental Price per Month"
-  min="0"
-/>
+            id="search-price"
+            type="number"
+            v-model.number="searchForm.rentalPricePerMonth"
+            placeholder="Max Rental Price per Month"
+            min="0"
+            aria-label="Maximum rental price per month"
+          />
 
+          <label class="sr-only" for="search-location">Location</label>
           <input
+            id="search-location"
             type="text"
             v-model="searchForm.location"
             placeholder="Location"
+            aria-label="Location"
           />
 
-          <button @click="applySearch">{{ t("search") }}</button>
-          <button @click="resetSearch">{{ t("reset") }}</button>
+          <button type="button" @click="applySearch">{{ t("search") }}</button>
+          <button type="button" @click="resetSearch">{{ t("reset") }}</button>
 
         </div>
       </div>
@@ -111,6 +133,7 @@
               :src="property.imageUrls?.[0] || defaultImage"
               class="property-image"
               alt="Property image"
+              loading="lazy"
             />
             <div class="property-overlay">
               <span class="property-category">{{ property.category }}</span>
@@ -147,11 +170,11 @@
 
             <!-- Action Buttons -->
             <div class="property-actions">
-              <button class="btn btn-primary" @click="bookNow(property)">
+              <button type="button" class="btn btn-primary" @click="bookNow(property)">
                 <i class="icon-book"></i>
                 {{ t("bookNow") }}
               </button>
-              <button class="btn btn-secondary" @click="toggleDetails(index)">
+              <button type="button" class="btn btn-secondary" @click="toggleDetails(index)" :aria-expanded="!!expanded[index]">
                 <i class="icon-details"></i>
                 {{ expanded[index] ? t("hideDetails") : t("viewDetails") }}
               </button>
@@ -285,6 +308,7 @@ const category = ref("");
 const properties = ref([]);
 const allProperties = ref([]); // Keep original fetched list for reset
 const defaultImage = "/images/default-property.png"; // fallback image
+const categoryImages = ref({});
 
 /* =====================================================
    SEARCH FORM STATE
@@ -327,11 +351,30 @@ async function loadCategories() {
   try {
     const res = await getCategories();
     categories.value = res.categories || [];
+    // load representative images for categories
+    await loadCategoryImages();
   } catch (err) {
     categoryError.value = t("failedToLoadCategories");
   } finally {
     loadingCategories.value = false;
   }
+}
+
+async function loadCategoryImages() {
+  const cats = categories.value || [];
+  if (!cats.length) return;
+
+  await Promise.all(
+    cats.map(async (cat) => {
+      try {
+        const res = await getPropertiesByCategory(cat);
+        const img = res.properties?.[0]?.imageUrls?.[0] || defaultImage;
+        categoryImages.value[cat] = img;
+      } catch (e) {
+        categoryImages.value[cat] = defaultImage;
+      }
+    })
+  );
 }
 
 /* =====================================================
@@ -493,11 +536,13 @@ onMounted(() => {
 
 /* ================= PAGE BASE ================= */
 .properties-page {
-  padding: 12px;
-  background: white;
+  padding: 16px;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
   min-height: 100vh;
-  max-width: 1100px;
-  margin: auto;
+  max-width: 1180px;
+  margin: 24px auto;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  color: #0f172a;
 }
 
 h2 {
@@ -558,14 +603,14 @@ h2 {
 /* ================= CATEGORY CARD ================= */
 .category-box {
   background: #ffffff;
-  border-radius: 24px;
-  padding: 30px 24px;
+  border-radius: 14px;
+  padding: 28px 22px 24px 22px;
   text-align: left;
   cursor: pointer;
   box-shadow: 0 18px 40px rgba(18, 38, 81, 0.08);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
   border: 1px solid rgba(203, 213, 225, 0.6);
-  min-height: 190px;
+  min-height: 200px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -578,14 +623,25 @@ h2 {
 }
 
 .category-icon {
-  width: 72px;
-  height: 72px;
-  border-radius: 22px;
+  width: 92px;
+  height: 92px;
+  border-radius: 18px;
   display: grid;
   place-items: center;
-  background: linear-gradient(180deg, #e0f2fe 0%, #dbeafe 100%);
-  font-size: 32px;
-  margin-bottom: 22px;
+  background: linear-gradient(180deg, #f0f9ff 0%, #eef2ff 100%);
+  font-size: 44px;
+  margin-bottom: 18px;
+}
+
+.category-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 14px;
+}
+
+.category-emoji {
+  font-size: 40px;
 }
 
 .category-box h3 {
@@ -600,13 +656,19 @@ h2 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 14px;
+  align-self: center;
+  padding: 8px 16px;
   border-radius: 999px;
-  background: #eef2ff;
-  color: #4338ca;
-  font-size: 13px;
-  font-weight: 600;
-  margin-top: 16px;
+  background: linear-gradient(180deg, #0f6570 0%, #155e63 100%);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 700;
+  margin-top: 14px;
+  box-shadow: 0 6px 18px rgba(16, 78, 84, 0.08);
+  max-width: 180px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .category-box:active {
@@ -655,20 +717,52 @@ h2 {
 
 .hero-search input {
   width: 100%;
-  max-width: 440px;
-  border-radius: 18px;
-  border: 1px solid #cbd5e1;
-  padding: 16px 18px;
-  font-size: 15px;
-  color: #111827;
-  background: #f8fafc;
+  max-width: 780px;
+  border-radius: 12px;
+  border: 1px solid #e6edf0;
+  padding: 18px 20px 18px 48px;
+  font-size: 16px;
+  color: #0f172a;
+  background: #ffffff;
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.12s ease;
+  box-shadow: 0 10px 30px rgba(15, 46, 51, 0.06);
+}
+
+
+.search-hero-wrapper {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.search-icon {
+  position: absolute;
+  left: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: #94a3b8;
+}
+
+.search-hero-input::placeholder {
+  color: #9aa6af;
 }
 
 .hero-search input:focus {
   border-color: #3b82f6;
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+}
+
+/* Focus states for accessibility */
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
+  border-color: #2563eb;
 }
 
 @media (max-width: 860px) {
@@ -679,6 +773,83 @@ h2 {
 
   .hero-search {
     justify-content: stretch;
+  }
+}
+
+/* Mobile / small tablet adjustments */
+@media (max-width: 720px) {
+  .search-hero-input {
+    max-width: 100%;
+    padding-left: 44px;
+    padding-right: 20px;
+  }
+
+  .search-icon {
+    left: 18px;
+  }
+
+  .category-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .category-box {
+    min-height: 160px;
+    padding: 20px;
+    border-radius: 12px;
+  }
+
+  .category-icon {
+    margin: 0 auto 14px;
+    width: 72px;
+    height: 72px;
+    font-size: 36px;
+  }
+
+  .category-meta {
+    width: 92%;
+    margin: 14px auto 0;
+  }
+
+  .hero-copy h2 {
+    font-size: 26px;
+  }
+}
+
+@media (max-width: 480px) {
+  .search-hero-input {
+    padding-left: 42px;
+    font-size: 15px;
+  }
+
+  .property-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .property-image-container {
+    height: 180px;
+  }
+
+  .property-content {
+    padding: 14px;
+  }
+
+  .property-actions {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
+
+  .category-icon {
+    width: 64px;
+    height: 64px;
+    font-size: 28px;
+  }
+
+  .category-box {
+    padding: 14px;
   }
 }
 
@@ -748,6 +919,12 @@ h2 {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+/* Small visual polish for badges */
+.property-category {
+  backdrop-filter: blur(6px);
+  box-shadow: 0 6px 18px rgba(16, 24, 40, 0.06);
 }
 
 /* ================= PROPERTY CONTENT ================= */
@@ -1106,6 +1283,14 @@ h2 {
   .search-fields button {
     width: 100%;
   }
+}
+.sr-only {
+  position: absolute !important;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+  white-space: nowrap;
 }
 .message-box {
   background: white;
