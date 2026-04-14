@@ -4,7 +4,7 @@ import axios from "axios";
 // -------------------------
 // Base API configuration
 // -------------------------
-const API_BASE_URL = "https://lmgtech-4.onrender.com/customer"; // Adjust to your backend URL
+const API_BASE_URL = "https://lmgtech-e1q0.onrender.com/customer"; // Adjust to your backend URL
 
 const api = axios.create({
   baseURL: API_BASE_URL,

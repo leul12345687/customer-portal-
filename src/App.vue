@@ -10,8 +10,15 @@
           <div class="title">{{ t("welcome") }}</div>
         </div>
 
+
         <!-- RIGHT SIDE -->
         <div class="topbar-right" ref="dropdownArea">
+
+          <!-- ACTIONS (About / Contact) -->
+          <div class="topbar-actions">
+            <button class="action" @click="aboutOpen = true">{{ t('about') || 'About' }}</button>
+            <button class="action" @click="contactOpen = true">{{ t('contact') || 'Contact' }}</button>
+          </div>
 
           <!-- PROFILE ICON -->
           <div class="profile-icon" @click="toggleMenu">
@@ -50,6 +57,10 @@
         </div>
       </header>
 
+      <!-- MODALS -->
+      <AboutModal v-model="aboutOpen" />
+      <ContactModal v-model="contactOpen" />
+
       <!-- MAIN -->
       <main class="public-main">
         <RouterView />
@@ -68,6 +79,8 @@ import { ref, onMounted, onBeforeUnmount, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { authToken, isAuthenticated, userName, logout } from "./authState.js";
+import AboutModal from "./components/AboutModal.vue";
+import ContactModal from "./components/ContactModal.vue";
 
 // --------------------------
 // Router & i18n
@@ -94,6 +107,10 @@ watch(locale, (lang) => localStorage.setItem("lang", lang));
 // --------------------------
 const menuOpen = ref(false);
 const dropdownArea = ref(null);
+
+// Modals
+const aboutOpen = ref(false);
+const contactOpen = ref(false);
 
 const toggleMenu = () => {
   menuOpen.value = !menuOpen.value;
@@ -203,6 +220,10 @@ window.addEventListener("storage", (event) => {
   overflow: visible !important;
   z-index: 2000;
 }
+
+.topbar-actions { display:flex; gap:8px; align-items:center; margin-right:10px }
+.topbar-actions .action { background: transparent; color: white; border:1px solid rgba(255,255,255,0.18); padding:6px 10px; border-radius:8px; cursor:pointer }
+.topbar-actions .action:hover { background: rgba(255,255,255,0.06) }
 
 /* PROFILE ICON */
 .profile-icon {
