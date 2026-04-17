@@ -1,6 +1,5 @@
 <template>
   <div class="properties-page">
-
     <!-- ================= BACK BUTTON ================= -->
     <div v-if="showProperties" class="back-container" role="navigation" aria-label="Back navigation">
       <button type="button" class="back-btn" @click="goBack" aria-label="Back">
@@ -12,22 +11,36 @@
     <section v-if="showCategories" class="category-section">
       <div class="category-hero">
         <div class="hero-copy">
-       
-          <h4>{{ t("selectPropertiesByCategory") }}</h4>
-         
+          <p class="hero-label">Customer Portal</p>
+          <div class="hero-actions">
+            <button type="button" class="btn hero-btn btn-primary" @click="focusSearch">
+              Browse catalog
+            </button>
+            <button type="button" class="btn hero-btn btn-ghost" @click="scrollToFeatured">
+              View featured
+            </button>
+          </div>
+          <div class="hero-stats">
+            <div class="stat">
+              <div class="stat-value">{{ activeListings }}</div>
+              <div class="stat-label">Active listings</div>
+            </div>
+          </div>
         </div>
 
-        <div class="hero-search">
-          <div class="search-hero-wrapper">
-            <span class="search-icon" aria-hidden="true">🔍</span>
-            <input
-              type="text"
-              v-model="searchCategory"
-              placeholder="Search all properties..."
-              aria-label="Search categories"
-              class="search-hero-input"
-            />
-          </div>
+      </div>
+
+      <div class="hero-search">
+        <div class="search-hero-wrapper">
+          <span class="search-icon" aria-hidden="true">🔍</span>
+          <input
+            ref="searchInput"
+            type="text"
+            v-model="searchCategory"
+            placeholder="Search all properties..."
+            aria-label="Search categories"
+            class="search-hero-input"
+          />
         </div>
       </div>
 
@@ -39,6 +52,13 @@
 
       <!-- Error -->
       <p v-if="categoryError" class="error">{{ categoryError }}</p>
+
+      <div class="section-head" ref="featuredAnchor">
+        <div>
+          <p class="section-label">Browse categories</p>
+          <h3 class="section-title">{{ t("selectPropertiesByCategory") }}</h3>
+        </div>
+      </div>
 
       <!-- Category Cards -->
       <div v-if="!loadingCategories && filteredCategories.length" class="category-grid">
@@ -76,7 +96,6 @@
       <div class="search-bar">
         <h3>{{ t("filterProperties") }}</h3>
         <div class="search-fields">
-
           <label class="sr-only" for="search-name">Name</label>
           <input
             id="search-name"
@@ -107,7 +126,6 @@
 
           <button type="button" @click="applySearch">{{ t("search") }}</button>
           <button type="button" @click="resetSearch">{{ t("reset") }}</button>
-
         </div>
       </div>
 
@@ -148,7 +166,7 @@
             <div class="property-details">
               <div class="detail-item">
                 <i class="icon-location"></i>
-                <span>{{ property.location || 'Location not specified' }}</span>
+                <span>{{ property.location || "Location not specified" }}</span>
               </div>
               <div class="detail-item">
                 <i class="icon-units"></i>
@@ -160,11 +178,11 @@
             <div class="property-pricing">
               <div class="price-item" v-if="property.rentalPrice?.perMonth">
                 <span class="price-label">Monthly</span>
-                <span class="price-value">${{ property.rentalPrice.perMonth }}</span>
+                <span class="price-value">{{ property.rentalPrice.perMonth }}</span>
               </div>
               <div class="price-item" v-if="property.rentalPrice?.perDay">
                 <span class="price-label">Daily</span>
-                <span class="price-value">${{ property.rentalPrice.perDay }}</span>
+                <span class="price-value">{{ property.rentalPrice.perDay }}</span>
               </div>
             </div>
 
@@ -174,7 +192,12 @@
                 <i class="icon-book"></i>
                 {{ t("bookNow") }}
               </button>
-              <button type="button" class="btn btn-secondary" @click="toggleDetails(index)" :aria-expanded="!!expanded[index]">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                @click="toggleDetails(index)"
+                :aria-expanded="!!expanded[index]"
+              >
                 <i class="icon-details"></i>
                 {{ expanded[index] ? t("hideDetails") : t("viewDetails") }}
               </button>
@@ -211,23 +234,23 @@
                 <div class="rental-prices">
                   <div class="price-row" v-if="property.rentalPrice?.perHour">
                     <span class="price-type">Per Hour:</span>
-                    <span class="price-amount">${{ property.rentalPrice.perHour }}</span>
+                    <span class="price-amount">{{ property.rentalPrice.perHour }}</span>
                   </div>
                   <div class="price-row" v-if="property.rentalPrice?.perDay">
                     <span class="price-type">Per Day:</span>
-                    <span class="price-amount">${{ property.rentalPrice.perDay }}</span>
+                    <span class="price-amount">{{ property.rentalPrice.perDay }}</span>
                   </div>
                   <div class="price-row" v-if="property.rentalPrice?.perWeek">
                     <span class="price-type">Per Week:</span>
-                    <span class="price-amount">${{ property.rentalPrice.perWeek }}</span>
+                    <span class="price-amount">{{ property.rentalPrice.perWeek }}</span>
                   </div>
                   <div class="price-row" v-if="property.rentalPrice?.perMonth">
                     <span class="price-type">Per Month:</span>
-                    <span class="price-amount">${{ property.rentalPrice.perMonth }}</span>
+                    <span class="price-amount">{{ property.rentalPrice.perMonth }}</span>
                   </div>
                   <div class="price-row" v-if="property.rentalPrice?.perYear">
                     <span class="price-type">Per Year:</span>
-                    <span class="price-amount">${{ property.rentalPrice.perYear }}</span>
+                    <span class="price-amount">{{ property.rentalPrice.perYear }}</span>
                   </div>
                 </div>
               </div>
@@ -235,11 +258,7 @@
               <div class="expanded-section">
                 <h4 class="section-title">{{ t("bookings") }}</h4>
                 <div class="bookings-list" v-if="property.bookings?.length">
-                  <div
-                    v-for="(booking, i) in property.bookings"
-                    :key="i"
-                    class="booking-item"
-                  >
+                  <div v-for="(booking, i) in property.bookings" :key="i" class="booking-item">
                     <div class="booking-dates">
                       {{ formatDateTime(booking.startDate) }} - {{ formatDateTime(booking.endDate) }}
                     </div>
@@ -279,11 +298,13 @@
     </transition>
   </div>
 </template>
+
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { getPropertiesByCategory, getCategories } from "../services/propertyService.js";
+import heroImage from "../image/newwww.png";
 
 const { t } = useI18n();
 const router = useRouter();
@@ -306,9 +327,10 @@ const expanded = ref({});
 const categories = ref([]);
 const category = ref("");
 const properties = ref([]);
-const allProperties = ref([]); // Keep original fetched list for reset
-const defaultImage = "/images/default-property.png"; // fallback image
+const allProperties = ref([]);
+const defaultImage = "/images/default-property.png";
 const categoryImages = ref({});
+const totalActiveListings = ref(0);
 
 /* =====================================================
    SEARCH FORM STATE
@@ -320,6 +342,8 @@ const searchForm = ref({
 });
 
 const searchCategory = ref("");
+const searchInput = ref(null);
+const featuredAnchor = ref(null);
 
 const filteredCategories = computed(() => {
   const filter = searchCategory.value.trim().toLowerCase();
@@ -328,13 +352,25 @@ const filteredCategories = computed(() => {
     : categories.value;
 });
 
-function categoryIcon(category) {
-  const name = (category || "").toLowerCase();
+const activeListings = computed(() => totalActiveListings.value || 0);
+
+function categoryIcon(categoryName) {
+  const name = (categoryName || "").toLowerCase();
   if (name.includes("construction") || name.includes("equipment")) return "🚧";
   if (name.includes("irrigation") || name.includes("water")) return "💧";
   if (name.includes("real") || name.includes("estate") || name.includes("property")) return "🏠";
   if (name.includes("medical") || name.includes("health")) return "🏥";
   return "🏢";
+}
+
+function focusSearch() {
+  nextTick(() => searchInput.value?.focus());
+}
+
+function scrollToFeatured() {
+  if (featuredAnchor.value) {
+    featuredAnchor.value.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 }
 
 /* =====================================================
@@ -351,7 +387,6 @@ async function loadCategories() {
   try {
     const res = await getCategories();
     categories.value = res.categories || [];
-    // load representative images for categories
     await loadCategoryImages();
   } catch (err) {
     categoryError.value = t("failedToLoadCategories");
@@ -364,17 +399,21 @@ async function loadCategoryImages() {
   const cats = categories.value || [];
   if (!cats.length) return;
 
-  await Promise.all(
+  const counts = await Promise.all(
     cats.map(async (cat) => {
       try {
         const res = await getPropertiesByCategory(cat);
         const img = res.properties?.[0]?.imageUrls?.[0] || defaultImage;
         categoryImages.value[cat] = img;
+        return res.properties?.length || 0;
       } catch (e) {
         categoryImages.value[cat] = defaultImage;
+        return 0;
       }
     })
   );
+
+  totalActiveListings.value = counts.reduce((sum, count) => sum + count, 0);
 }
 
 /* =====================================================
@@ -400,56 +439,49 @@ async function fetchProperties(cat) {
     const lang = localStorage.getItem("lang") || "en";
     const res = await getPropertiesByCategory(cat, lang);
     properties.value = res.properties || [];
-    allProperties.value = [...properties.value]; // Save original list for search/reset
+    allProperties.value = [...properties.value];
   } catch (err) {
     error.value = err.response?.data?.message || t("failedToLoadProperties");
   } finally {
     loading.value = false;
   }
 }
-/* =====================================================
-   SEARCH / FILTER PROPERTIES (FINAL FIXED VERSION)
-===================================================== */
 
+/* =====================================================
+   SEARCH / FILTER PROPERTIES
+===================================================== */
 function applySearch() {
   const name = searchForm.value.name?.trim().toLowerCase();
   const location = searchForm.value.location?.trim().toLowerCase();
   const rentalPrice = searchForm.value.rentalPricePerMonth;
 
   properties.value = allProperties.value.filter((property) => {
-
-    // ===== NAME FILTER =====
     if (name && !property.name?.toLowerCase().includes(name)) {
       return false;
     }
 
-    // ===== LOCATION FILTER =====
     if (location && !property.location?.toLowerCase().includes(location)) {
       return false;
     }
 
-    // ===== PRICE FILTER (MATCHES BACKEND STRUCTURE) =====
     if (rentalPrice != null && rentalPrice !== "") {
       const price = Number(property.rentalPrice?.perMonth);
-
-      // If no price or invalid → exclude
       if (isNaN(price) || price > rentalPrice) {
         return false;
       }
     }
 
-    // ✅ PASSES ALL ACTIVE FILTERS
     return true;
   });
-}   function resetSearch() {
-  // Reset form inputs
+}
+
+function resetSearch() {
   searchForm.value = {
     name: "",
     rentalPricePerMonth: null,
     location: "",
   };
 
-  // Restore original full list
   properties.value = [...allProperties.value];
 }
 
@@ -533,111 +565,251 @@ onMounted(() => {
 </script>
 
 <style scoped>
-
 /* ================= PAGE BASE ================= */
 .properties-page {
-  padding: 16px;
-  background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+  padding: 32px 20px 72px;
   min-height: 100vh;
   max-width: 1180px;
-  margin: 24px auto;
-  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  margin: 0 auto;
   color: #0f172a;
-}
-
-h2 {
-  text-align: center;
-  color: #1e3a8a;
-  margin-bottom: 20px;
 }
 
 /* ================= BACK BUTTON ================= */
 .back-container {
-  margin-bottom: 15px;
+  margin-bottom: 18px;
 }
 
 .back-btn {
-  background: #1e3a8a;
+  background: #0b6a6e;
   color: white;
   padding: 10px 18px;
-  border-radius: 8px;
+  border-radius: 999px;
   border: none;
   font-weight: 600;
   cursor: pointer;
   transition: 0.2s ease;
+  box-shadow: 0 10px 24px rgba(11, 106, 110, 0.22);
 }
 
 .back-btn:hover {
-  background: #162f6b;
+  background: #07525a;
 }
 
-/* ================= SELECTED CATEGORY TITLE ================= */
-.selected-category-title {
-  text-align: center;
-  margin: 8px auto 18px;
+/* ================= CATEGORY HERO ================= */
+.category-section {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.category-hero {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 32px;
+  align-items: center;
+}
+
+.hero-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.hero-label {
+  margin: 0;
+  color: #0b6a6e;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.hero-title {
+  font-size: 38px;
+  line-height: 1.1;
+  margin: 0;
+  color: #0f172a;
+}
+
+.hero-subtitle {
+  font-size: 15px;
+  color: #475569;
+  line-height: 1.8;
+  margin: 0;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.hero-btn {
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primary {
+  background: #0b6a6e;
+  color: #ffffff;
+  box-shadow: 0 12px 26px rgba(11, 106, 110, 0.25);
+}
+
+.btn-primary:hover {
+  background: #07525a;
+}
+
+.btn-ghost {
+  background: #ffffff;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+}
+
+.btn-ghost:hover {
+  border-color: rgba(11, 106, 110, 0.3);
+}
+
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  padding-top: 8px;
+}
+
+.stat {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 14px 16px;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+}
+
+.stat-value {
   font-size: 18px;
   font-weight: 700;
-  color: #7a8a1e;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-  max-width: 90%;
+  color: #0f172a;
 }
 
-.selected-category-title::after {
-  content: "";
-  display: block;
-  width: 60px;
-  height: 3px;
-  background: #a9ac12;
-  margin: 6px auto 0;
-  border-radius: 2px;
+.stat-label {
+  font-size: 12px;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-top: 4px;
 }
+
+
+/* ================= SEARCH ================= */
+.hero-search {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.search-hero-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.search-icon {
+  position: absolute;
+  left: 18px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 18px;
+  color: #94a3b8;
+}
+
+.search-hero-input {
+  width: 100%;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 16px 18px 16px 48px;
+  font-size: 15px;
+  color: #0f172a;
+  background: #ffffff;
+  outline: none;
+  box-shadow: 0 16px 30px rgba(15, 23, 42, 0.08);
+}
+
+.search-hero-input:focus {
+  border-color: rgba(11, 106, 110, 0.6);
+  box-shadow: 0 0 0 3px rgba(11, 106, 110, 0.12);
+}
+
+/* ================= SECTION HEAD ================= */
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.section-label {
+  margin: 0 0 6px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: #64748b;
+}
+
+.section-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.section-note {
+  margin: 0;
+  font-size: 13px;
+  color: #64748b;
+  max-width: 320px;
+  text-align: right;
+}
+
 /* ================= CATEGORY GRID ================= */
 .category-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 24px;
-  margin-top: 24px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 22px;
 }
 
-/* ================= CATEGORY CARD ================= */
 .category-box {
   background: #ffffff;
-  border-radius: 14px;
-  padding: 28px 22px 24px 22px;
+  border-radius: 18px;
+  padding: 22px;
   text-align: left;
   cursor: pointer;
-  box-shadow: 0 18px 40px rgba(18, 38, 81, 0.08);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-  border: 1px solid rgba(203, 213, 225, 0.6);
-  min-height: 200px;
+  box-shadow: 0 20px 36px rgba(15, 23, 42, 0.08);
+  border: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  gap: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .category-box:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 26px 50px rgba(18, 38, 81, 0.12);
-  border-color: rgba(96, 165, 250, 0.35);
+  transform: translateY(-4px);
+  box-shadow: 0 30px 40px rgba(15, 23, 42, 0.14);
 }
 
 .category-icon {
-  width: 92px;
-  height: 92px;
-  border-radius: 18px;
+  width: 96px;
+  height: 86px;
+  border-radius: 16px;
   display: grid;
   place-items: center;
-  background: linear-gradient(180deg, #f0f9ff 0%, #eef2ff 100%);
-  font-size: 44px;
-  margin-bottom: 18px;
+  background: #f1f5f9;
+  overflow: hidden;
 }
 
 .category-icon img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 14px;
 }
 
 .category-emoji {
@@ -645,248 +817,57 @@ h2 {
 }
 
 .category-box h3 {
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 700;
-  color: #111827;
   margin: 0;
-  line-height: 1.1;
+  color: #0f172a;
 }
 
 .category-meta {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  align-self: center;
-  padding: 8px 16px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #0f6570 0%, #155e63 100%);
-  color: #ffffff;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 700;
-  margin-top: 14px;
-  box-shadow: 0 6px 18px rgba(16, 78, 84, 0.08);
-  max-width: 180px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.category-box:active {
-  transform: scale(0.98);
-}
-
-.category-hero {
-  display: grid;
-  grid-template-columns: 1.6fr 1fr;
-  gap: 24px;
-  align-items: center;
-  padding: 24px 0 12px;
-}
-
-.hero-copy {
-  max-width: 720px;
-}
-
-.hero-label {
-  margin: 0 0 10px;
-  color: #2563eb;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
   text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #0b6a6e;
 }
 
-.hero-copy h2 {
-  font-size: 34px;
-  line-height: 1.1;
-  color: #0f172a;
-  margin: 0 0 12px;
-}
-
-.hero-subtitle {
-  color: #475569;
-  font-size: 15px;
-  line-height: 1.8;
-  max-width: 680px;
-}
-
-.hero-search {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.hero-search input {
-  width: 100%;
-  max-width: 780px;
-  border-radius: 12px;
-  border: 1px solid #e6edf0;
-  padding: 18px 20px 18px 48px;
+/* ================= SELECTED CATEGORY TITLE ================= */
+.selected-category-title {
+  text-align: center;
+  margin: 8px auto 18px;
   font-size: 16px;
-  color: #0f172a;
-  background: #ffffff;
-  outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.12s ease;
-  box-shadow: 0 10px 30px rgba(15, 46, 51, 0.06);
-}
-
-
-.search-hero-wrapper {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  width: 100%;
-}
-
-.search-icon {
-  position: absolute;
-  left: 28px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 18px;
-  color: #94a3b8;
-}
-
-.search-hero-input::placeholder {
-  color: #9aa6af;
-}
-
-.hero-search input:focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
-}
-
-/* Focus states for accessibility */
-button:focus,
-input:focus,
-select:focus,
-textarea:focus {
-  outline: none;
-  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
-  border-color: #2563eb;
-}
-
-@media (max-width: 860px) {
-  .category-hero {
-    grid-template-columns: 1fr;
-    gap: 18px;
-  }
-
-  .hero-search {
-    justify-content: stretch;
-  }
-}
-
-/* Mobile / small tablet adjustments */
-@media (max-width: 720px) {
-  .search-hero-input {
-    max-width: 100%;
-    padding-left: 44px;
-    padding-right: 20px;
-  }
-
-  .search-icon {
-    left: 18px;
-  }
-
-  .category-grid {
-    grid-template-columns: 1fr;
-    gap: 18px;
-  }
-
-  .category-box {
-    min-height: 160px;
-    padding: 20px;
-    border-radius: 12px;
-  }
-
-  .category-icon {
-    margin: 0 auto 14px;
-    width: 72px;
-    height: 72px;
-    font-size: 36px;
-  }
-
-  .category-meta {
-    width: 92%;
-    margin: 14px auto 0;
-  }
-
-  .hero-copy h2 {
-    font-size: 26px;
-  }
-}
-
-@media (max-width: 480px) {
-  .search-hero-input {
-    padding-left: 42px;
-    font-size: 15px;
-  }
-
-  .property-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .property-image-container {
-    height: 180px;
-  }
-
-  .property-content {
-    padding: 14px;
-  }
-
-  .property-actions {
-    flex-direction: column;
-  }
-
-  .btn {
-    width: 100%;
-  }
-
-  .category-icon {
-    width: 64px;
-    height: 64px;
-    font-size: 28px;
-  }
-
-  .category-box {
-    padding: 14px;
-  }
-}
-
-@media (max-width: 600px) {
-  .category-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .hero-copy h2 {
-    font-size: 28px;
-  }
+  font-weight: 700;
+  color: #0b6a6e;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
 }
 
 /* ================= PROPERTY GRID ================= */
 .property-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 320px));
   gap: 24px;
   margin-top: 20px;
+  align-items: stretch;
+  justify-content: center;
 }
 
-/* ================= PROPERTY CARD ================= */
 .property-card {
   background: white;
-  border-radius: 16px;
+  border-radius: 18px;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 20px 36px rgba(15, 23, 42, 0.08);
   transition: all 0.3s ease;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #e2e8f0;
+  width: 100%;
+  max-width: 320px;
 }
 
 .property-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 26px 44px rgba(15, 23, 42, 0.15);
 }
 
-/* ================= PROPERTY IMAGE ================= */
 .property-image-container {
   position: relative;
   height: 220px;
@@ -901,7 +882,7 @@ textarea:focus {
 }
 
 .property-card:hover .property-image {
-  transform: scale(1.05);
+  transform: scale(1.04);
 }
 
 .property-overlay {
@@ -911,39 +892,33 @@ textarea:focus {
 }
 
 .property-category {
-  background: rgba(255, 255, 255, 0.9);
-  color: #1e3a8a;
+  background: rgba(255, 255, 255, 0.92);
+  color: #0b6a6e;
   padding: 4px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.08em;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
 }
 
-/* Small visual polish for badges */
-.property-category {
-  backdrop-filter: blur(6px);
-  box-shadow: 0 6px 18px rgba(16, 24, 40, 0.06);
-}
-
-/* ================= PROPERTY CONTENT ================= */
 .property-content {
   padding: 20px;
 }
 
 .property-title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
-  color: #1e3a8a;
+  color: #0f172a;
   margin: 0 0 8px 0;
   line-height: 1.3;
 }
 
 .property-description {
-  color: #6b7280;
-  font-size: 14px;
-  line-height: 1.5;
+  color: #64748b;
+  font-size: 13px;
+  line-height: 1.6;
   margin: 0 0 16px 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -951,7 +926,6 @@ textarea:focus {
   overflow: hidden;
 }
 
-/* ================= PROPERTY DETAILS ================= */
 .property-details {
   display: flex;
   flex-direction: column;
@@ -963,53 +937,50 @@ textarea:focus {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 14px;
-  color: #4b5563;
+  font-size: 13px;
+  color: #475569;
 }
 
-.icon-location::before,
-.icon-units::before {
-  content: "📍";
-  font-size: 16px;
+.detail-item::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #0b6a6e;
+  display: inline-block;
 }
 
-.icon-units::before {
-  content: "🏢";
-}
-
-/* ================= PROPERTY PRICING ================= */
 .property-pricing {
   display: flex;
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
 .price-item {
   flex: 1;
-  text-align: center;
-  padding: 12px;
+  text-align: left;
+  padding: 10px 12px;
   background: #f8fafc;
-  border-radius: 8px;
+  border-radius: 12px;
   border: 1px solid #e2e8f0;
 }
 
 .price-label {
   display: block;
-  font-size: 12px;
+  font-size: 11px;
   color: #64748b;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.08em;
   margin-bottom: 4px;
 }
 
 .price-value {
   display: block;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
-  color: #059669;
+  color: #0b6a6e;
 }
 
-/* ================= PROPERTY ACTIONS ================= */
 .property-actions {
   display: flex;
   gap: 12px;
@@ -1017,10 +988,10 @@ textarea:focus {
 
 .btn {
   flex: 1;
-  padding: 12px 16px;
-  border-radius: 8px;
+  padding: 10px 16px;
+  border-radius: 999px;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   transition: all 0.2s ease;
   border: none;
@@ -1030,52 +1001,25 @@ textarea:focus {
   gap: 8px;
 }
 
-.btn-primary {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-  color: white;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-}
-
-.btn-primary:hover {
-  background: linear-gradient(135deg, #2563eb, #1e40af);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-}
-
 .btn-secondary {
   background: white;
-  color: #374151;
-  border: 2px solid #d1d5db;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
 }
 
 .btn-secondary:hover {
-  background: #f9fafb;
-  border-color: #9ca3af;
-  transform: translateY(-1px);
-}
-
-.icon-book::before,
-.icon-details::before {
-  font-size: 16px;
-}
-
-.icon-book::before {
-  content: "📅";
-}
-
-.icon-details::before {
-  content: "ℹ️";
+  border-color: rgba(11, 106, 110, 0.3);
 }
 
 /* ================= EXPANDED DETAILS ================= */
 .property-expanded {
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid #e2e8f0;
   background: #f8fafc;
 }
 
 .expanded-section {
   padding: 20px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .expanded-section:last-child {
@@ -1083,13 +1027,12 @@ textarea:focus {
 }
 
 .section-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1e3a8a;
+  font-size: 15px;
+  font-weight: 700;
+  color: #0b6a6e;
   margin: 0 0 12px 0;
 }
 
-/* ================= MERCHANT INFO ================= */
 .merchant-info {
   display: flex;
   flex-direction: column;
@@ -1101,7 +1044,7 @@ textarea:focus {
   justify-content: space-between;
   align-items: center;
   padding: 8px 0;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid #e2e8f0;
 }
 
 .info-row:last-child {
@@ -1109,17 +1052,16 @@ textarea:focus {
 }
 
 .info-label {
-  font-weight: 500;
-  color: #374151;
-  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 13px;
 }
 
 .info-value {
-  color: #6b7280;
-  font-size: 14px;
+  color: #64748b;
+  font-size: 13px;
 }
 
-/* ================= RENTAL PRICES ================= */
 .rental-prices {
   display: flex;
   flex-direction: column;
@@ -1132,23 +1074,22 @@ textarea:focus {
   align-items: center;
   padding: 8px 12px;
   background: white;
-  border-radius: 6px;
-  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
 }
 
 .price-type {
-  font-weight: 500;
-  color: #374151;
-  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  font-size: 13px;
 }
 
 .price-amount {
-  font-weight: 600;
-  color: #059669;
-  font-size: 14px;
+  font-weight: 700;
+  color: #0b6a6e;
+  font-size: 13px;
 }
 
-/* ================= BOOKINGS ================= */
 .bookings-list {
   display: flex;
   flex-direction: column;
@@ -1158,14 +1099,14 @@ textarea:focus {
 .booking-item {
   padding: 12px;
   background: white;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
 }
 
 .booking-dates {
-  font-weight: 500;
-  color: #1e3a8a;
-  font-size: 14px;
+  font-weight: 600;
+  color: #0b6a6e;
+  font-size: 13px;
   margin-bottom: 4px;
 }
 
@@ -1173,17 +1114,17 @@ textarea:focus {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 13px;
-  color: #6b7280;
+  font-size: 12px;
+  color: #64748b;
 }
 
 .booking-status {
-  font-weight: 600;
+  font-weight: 700;
   padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 11px;
+  border-radius: 999px;
+  font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.1em;
 }
 
 .status-confirmed {
@@ -1207,33 +1148,27 @@ textarea:focus {
   margin: 0;
 }
 
-/* ================= LOGIN PROMPT ================= */
-.login-prompt-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
 /* ================= SEARCH BAR ================= */
 .search-bar {
-  background: #f9fafb;
-  padding: 12px 16px;
-  margin: 20px auto;
-  border-radius: 10px;
-  max-width: 900px;
+  background: #ffffff;
+  padding: 16px 18px;
+  margin: 24px auto;
+  border-radius: 18px;
+  max-width: 980px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  border: 1px solid #e5e7eb;
+  gap: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 18px 30px rgba(15, 23, 42, 0.08);
 }
 
 .search-bar h3 {
-  margin: 0 0 6px 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #1e3a8a;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
 }
 
 .search-fields {
@@ -1244,76 +1179,68 @@ textarea:focus {
 
 .search-fields input {
   flex: 1;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid #cbd5e1;
-  font-size: 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  font-size: 13px;
 }
 
 .search-fields button {
-  background: #2563eb;
+  background: #0b6a6e;
   color: white;
   border: none;
-  padding: 8px 14px;
-  border-radius: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
   cursor: pointer;
   font-weight: 600;
   transition: 0.2s ease;
 }
 
 .search-fields button:hover {
-  background: #1d4ed8;
+  background: #07525a;
 }
 
 .search-fields button:last-child {
-  background: #6b7280;
+  background: #0f172a;
 }
 
 .search-fields button:last-child:hover {
-  background: #4b5563;
+  background: #111827;
 }
 
-/* ================= MOBILE OPTIMIZATION FOR SEARCH ================= */
-@media (max-width: 480px) {
-  .search-fields {
-    flex-direction: column;
-  }
+/* ================= LOGIN PROMPT ================= */
+.login-prompt-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
-  .search-fields input,
-  .search-fields button {
-    width: 100%;
-  }
-}
-.sr-only {
-  position: absolute !important;
-  height: 1px;
-  width: 1px;
-  overflow: hidden;
-  clip: rect(1px, 1px, 1px, 1px);
-  white-space: nowrap;
-}
 .message-box {
   background: white;
   padding: 28px;
-  border-radius: 12px;
+  border-radius: 16px;
   text-align: center;
   position: relative;
   width: 90%;
-  max-width: 350px;
+  max-width: 360px;
+  box-shadow: 0 30px 50px rgba(15, 23, 42, 0.25);
 }
 
 .redirect-btn {
-  background: #2563eb;
+  background: #0b6a6e;
   color: white;
   padding: 10px 18px;
   border: none;
-  border-radius: 8px;
+  border-radius: 999px;
   margin-top: 10px;
   cursor: pointer;
 }
 
 .redirect-btn:hover {
-  background: #1d4ed8;
+  background: #07525a;
 }
 
 .close-btn {
@@ -1324,23 +1251,65 @@ textarea:focus {
   font-size: 20px;
 }
 
-/* ================= MOBILE OPTIMIZATION ================= */
-@media (max-width: 480px) {
-
-  .selected-category-title {
-    font-size: 16px;
-    margin-bottom: 14px;
-  }
-
-  .property-img {
-    height: 180px;
-  }
-
-  .category-box {
-    font-size: 13px;
-    padding: 14px 8px;
-  }
-
+.sr-only {
+  position: absolute !important;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+  white-space: nowrap;
 }
 
+/* ================= MOBILE ================= */
+@media (max-width: 980px) {
+  .category-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .section-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .section-note {
+    text-align: left;
+  }
+}
+
+@media (max-width: 720px) {
+  .hero-title {
+    font-size: 28px;
+  }
+
+  .hero-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .search-hero-input {
+    padding-left: 42px;
+  }
+
+  .property-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .property-actions {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .search-fields {
+    flex-direction: column;
+  }
+
+  .search-fields input,
+  .search-fields button {
+    width: 100%;
+  }
+}
 </style>
