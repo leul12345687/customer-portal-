@@ -1,6 +1,6 @@
 <template>
   <div class="page">
-    <div class="page-header">
+    <div>
       <div class="header-copy">
         <p class="breadcrumb"></p>
         <h3>{{ t("myBookings") }}</h3>
@@ -673,7 +673,9 @@ onMounted(getMyBookings);
 @media (max-width: 900px) {
   .page-header {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 12px;
   }
 
   .header-actions {
@@ -693,9 +695,35 @@ onMounted(getMyBookings);
 
 @media (max-width: 640px) {
   .page-header {
-    margin: 16px auto 12px;
-    padding: 16px 18px;
-    border-radius: 20px;
+    margin: 12px auto 10px;
+    padding: 10px 12px;
+    border-radius: 16px;
+    gap: 10px;
+  }
+
+  .page-header h3 {
+    font-size: 18px;
+  }
+
+  .search-box {
+    height: 26px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+  }
+
+  .search-box input {
+    font-size: 12px;
+    line-height: 1;
+    padding: 0 8px;
+  }
+
+  .search-box button {
+    width: 34px;
+    font-size: 14px;
+    padding: 0;
+    background: transparent;
   }
 
   .tabs {
