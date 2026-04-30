@@ -239,11 +239,13 @@ onMounted(getMyBookings);
 
 <style scoped>
 .page {
-  min-height: 100vh;
+  min-height: 50vh;
   background: #eef7fb;
   color: #17233d;
   font-family: "Inter", sans-serif;
   padding-bottom: 40px;
+  padding-left: 12px;
+  padding-right: 12px;
 }
 
 .page-header {
@@ -254,13 +256,16 @@ onMounted(getMyBookings);
   background: linear-gradient(180deg, #15596f 0%, #1c7f9b 100%);
   color: white;
   border-radius: 24px;
-  padding: 28px 30px;
-  margin: 24px 20px 16px;
+  padding: 18px 24px;
+  margin: 24px auto 16px;
+  max-width: 1180px;
   box-shadow: 0 16px 40px rgba(14, 65, 85, 0.18);
 }
 
 .header-copy {
   max-width: 720px;
+  min-width: 0;
+  flex: 1 1 420px;
 }
 
 .breadcrumb {
@@ -269,17 +274,27 @@ onMounted(getMyBookings);
   opacity: 0.9;
 }
 
+.breadcrumb:empty {
+  display: none;
+}
+
+.page-header h3 {
+  margin: 0;
+  font-size: clamp(20px, 2.2vw, 28px);
+  line-height: 1.2;
+}
+
 .page-header h1 {
   margin: 0;
   font-size: 32px;
-  font-weight: 700;
+  font-weight: 100;
   letter-spacing: -0.02em;
 }
 
 .header-subtitle {
   margin: 12px 0 0;
   color: rgba(255, 255, 255, 0.92);
-  max-width: 620px;
+  max-width: 120px;
   line-height: 1.8;
 }
 
@@ -287,7 +302,9 @@ onMounted(getMyBookings);
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  width: 100%;
+  width: auto;
+  flex: 0 1 360px;
+  min-width: 0;
 }
 
 .search-box {
@@ -299,6 +316,7 @@ onMounted(getMyBookings);
   border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: 14px;
   overflow: hidden;
+  height: 34px;
 }
 
 .search-box input {
@@ -306,9 +324,10 @@ onMounted(getMyBookings);
   border: none;
   outline: none;
   color: white;
-  padding: 12px 16px;
+  padding: 0 12px;
   background: transparent;
   font-size: 14px;
+  height: 100%;
 }
 
 .search-box input::placeholder {
@@ -319,19 +338,23 @@ onMounted(getMyBookings);
   border: none;
   background: rgba(255, 255, 255, 0.18);
   color: white;
-  width: 52px;
+  width: 44px;
   display: grid;
   place-items: center;
   cursor: pointer;
-  font-size: 18px;
+  font-size: 16px;
+  height: 100%;
 }
 
 .tabs {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-  padding: 0 20px;
+  padding: 0;
   margin-bottom: 18px;
+  max-width: 1180px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .tab-button {
@@ -356,7 +379,10 @@ onMounted(getMyBookings);
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
   gap: 20px;
-  padding: 0 20px;
+  padding: 0;
+  max-width: 1180px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .booking-card {
@@ -367,6 +393,7 @@ onMounted(getMyBookings);
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .card-top {
@@ -374,6 +401,7 @@ onMounted(getMyBookings);
   justify-content: space-between;
   gap: 16px;
   padding: 24px 24px 16px;
+  min-width: 0;
 }
 
 .card-heading {
@@ -396,12 +424,14 @@ onMounted(getMyBookings);
   font-size: 22px;
   line-height: 1.2;
   color: #0f172a;
+  overflow-wrap: anywhere;
 }
 
 .booking-subtitle {
   margin: 10px 0 0;
   font-size: 14px;
   color: #475569;
+  overflow-wrap: anywhere;
 }
 
 .merchant-phone {
@@ -449,6 +479,7 @@ onMounted(getMyBookings);
   gap: 18px;
   padding: 0 24px 20px;
   align-items: center;
+  min-width: 0;
 }
 
 .booking-image {
@@ -469,6 +500,7 @@ onMounted(getMyBookings);
 .booking-details {
   display: grid;
   gap: 12px;
+  min-width: 0;
 }
 
 .detail-row {
@@ -480,6 +512,7 @@ onMounted(getMyBookings);
   border-radius: 14px;
   border: 1px solid #e2e8f0;
   font-size: 14px;
+  min-width: 0;
 }
 
 .detail-row span {
@@ -488,6 +521,9 @@ onMounted(getMyBookings);
 
 .detail-row strong {
   color: #0f172a;
+  text-align: right;
+  overflow-wrap: anywhere;
+  max-width: 60%;
 }
 
 .card-footer {
@@ -504,6 +540,7 @@ onMounted(getMyBookings);
   flex-direction: column;
   gap: 10px;
   min-width: 240px;
+  flex: 1 1 240px;
 }
 
 .pay-btn {
@@ -596,19 +633,28 @@ onMounted(getMyBookings);
 .empty-state {
   text-align: center;
   color: #475569;
-  padding: 40px 20px;
+  padding: 40px 0;
   font-size: 16px;
+  max-width: 1180px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .loading {
   text-align: center;
-  padding: 30px 20px;
+  padding: 30px 0;
+  max-width: 1180px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .error-message {
   color: #b91c1c;
-  padding: 0 20px 20px;
+  padding: 0 0 20px;
   font-weight: 600;
+  max-width: 1180px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 @keyframes spin {
@@ -633,6 +679,7 @@ onMounted(getMyBookings);
   .header-actions {
     width: 100%;
     justify-content: stretch;
+    flex: 1 1 auto;
   }
 
   .card-body {
@@ -646,17 +693,17 @@ onMounted(getMyBookings);
 
 @media (max-width: 640px) {
   .page-header {
-    margin: 16px 12px 12px;
-    padding: 22px 18px;
+    margin: 16px auto 12px;
+    padding: 16px 18px;
     border-radius: 20px;
   }
 
   .tabs {
-    padding: 0 12px;
+    padding: 0;
   }
 
   .booking-list {
-    padding: 0 12px;
+    padding: 0;
   }
 
   .booking-card {
@@ -670,6 +717,27 @@ onMounted(getMyBookings);
   .thumb {
     width: 100px;
     height: 80px;
+  }
+
+  .payment-block {
+    min-width: 0;
+    flex-basis: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .booking-list {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .detail-row strong {
+    text-align: left;
+    max-width: 100%;
   }
 }
 </style>
