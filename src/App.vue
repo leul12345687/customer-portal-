@@ -3,7 +3,7 @@
     <div class="public-wrap">
 
       <!-- ===== TOPBAR ===== -->
-      <header class="public-topbar">
+      <header class="public-topbar" ref="topbarEl">
         <div class="topbar-left">
           <div class="brand-mark">LMG</div>
           <div class="brand-copy">
@@ -88,6 +88,19 @@ import AboutModal from "./components/AboutModal.vue";
 import ContactModal from "./components/ContactModal.vue";
 
 // --------------------------
+// FIXED TOPBAR SPACING
+// --------------------------
+const topbarEl = ref(null);
+let topbarResizeObserver;
+
+const syncTopbarHeightVar = () => {
+  const el = topbarEl.value;
+  if (!el) return;
+  const height = Math.ceil(el.getBoundingClientRect().height);
+  document.documentElement.style.setProperty("--app-topbar-h", `${height}px`);
+};
+
+// --------------------------
 // Router & i18n
 // --------------------------
 const router = useRouter();
@@ -130,6 +143,15 @@ const handleClickOutside = (e) => {
 onMounted(() => {
   document.addEventListener("click", handleClickOutside);
 
+  // Keep layout padding in sync with the fixed header height
+  syncTopbarHeightVar();
+  if (window.ResizeObserver && topbarEl.value) {
+    topbarResizeObserver = new ResizeObserver(() => syncTopbarHeightVar());
+    topbarResizeObserver.observe(topbarEl.value);
+  } else {
+    window.addEventListener("resize", syncTopbarHeightVar);
+  }
+
   // Sync auth state for deployed SPA
   if (authToken.value) {
     // Ensure auto logout is scheduled
@@ -140,6 +162,12 @@ onMounted(() => {
 // Clean up
 onBeforeUnmount(() => {
   document.removeEventListener("click", handleClickOutside);
+
+  if (topbarResizeObserver) {
+    topbarResizeObserver.disconnect();
+    topbarResizeObserver = undefined;
+  }
+  window.removeEventListener("resize", syncTopbarHeightVar);
 });
 
 // --------------------------
@@ -184,12 +212,13 @@ window.addEventListener("storage", (event) => {
 
 /* ===== TOPBAR ===== */
 .public-topbar {
-  position: sticky;
+  position: fixed;
   top: 0;
-  width: 100%;
+  left: 0;
+  right: 0;
   height: 76px;
   background: #0b6a6e;
-  color: var(--ink);
+  color: #f8fafc;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -229,12 +258,12 @@ window.addEventListener("storage", (event) => {
 .brand-title {
   font-weight: 700;
   font-size: 15px;
-  color: var(--ink);
+  color: #f8fafc;
 }
 
 .brand-subtitle {
   font-size: 12px;
-  color: var(--muted);
+  color: rgba(248, 250, 252, 0.78);
   letter-spacing: 0.02em;
 }
 
@@ -248,13 +277,14 @@ window.addEventListener("storage", (event) => {
 .title {
   font-size: 14px;
   font-weight: 600;
-  color: var(--muted);
+  color: rgba(248, 250, 252, 0.78);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 /* RIGHT AREA */
 .topbar-right {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -272,7 +302,7 @@ window.addEventListener("storage", (event) => {
 
 .topbar-actions .action {
   background: #ffffff;
-  color: var(--ink);
+  color:black;
   border: 1px solid var(--line);
   padding: 6px 12px;
   border-radius: 999px;
@@ -358,7 +388,7 @@ window.addEventListener("storage", (event) => {
 }
 
 .public-main {
-  padding: 28px 24px 80px;
+  padding: calc(28px + var(--app-topbar-h, 76px)) 24px 80px;
 }
 
 /* Footer */

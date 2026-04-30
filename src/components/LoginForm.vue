@@ -146,22 +146,6 @@ function promptGoogleSignIn() {
   window.google.accounts.id.prompt();
 }
 
-function parseJwt(token) {
-  try {
-    const base64Url = token.split(".")[1];
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split("")
-        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-        .join("")
-    );
-    return JSON.parse(jsonPayload);
-  } catch (error) {
-    return null;
-  }
-}
-
 async function handleGoogleCredentialResponse(response) {
   if (!response?.credential) {
     googleError.value = t("googleAuthFailed");
@@ -169,17 +153,9 @@ async function handleGoogleCredentialResponse(response) {
     return;
   }
 
-  const payload = parseJwt(response.credential);
-  if (!payload?.sub) {
-    googleError.value = t("googleAuthFailed");
-    loading.value = false;
-    return;
-  }
-
   const credentials = {
-    googleId: payload.sub,
+    googleToken: response.credential,
     provider: "google",
-    email: payload.email,
   };
 
   try {
@@ -193,7 +169,7 @@ async function handleGoogleCredentialResponse(response) {
       return;
     }
 
-    authLogin(res.token, res.user);
+    authLogin(res.token, res.customer);
     message.value = res.message;
 
     const pending = sessionStorage.getItem("pendingBooking");
@@ -231,7 +207,7 @@ async function handleLogin() {
       return;
     }
 
-    authLogin(res.token, res.user);
+    authLogin(res.token, res.customer);
     await new Promise((r) => setTimeout(r, 100));
     message.value = res.message;
 

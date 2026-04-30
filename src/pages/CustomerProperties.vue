@@ -941,6 +941,10 @@ onMounted(() => {
   color: #475569;
 }
 
+.detail-item span {
+  overflow-wrap: anywhere;
+}
+
 .detail-item::before {
   content: "";
   width: 8px;
@@ -953,11 +957,13 @@ onMounted(() => {
 .property-pricing {
   display: flex;
   gap: 12px;
+  flex-wrap: wrap;
   margin-bottom: 18px;
 }
 
 .price-item {
   flex: 1;
+  min-width: 140px;
   text-align: left;
   padding: 10px 12px;
   background: #f8fafc;
@@ -1043,6 +1049,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
   padding: 8px 0;
   border-bottom: 1px solid #e2e8f0;
 }
@@ -1060,6 +1067,8 @@ onMounted(() => {
 .info-value {
   color: #64748b;
   font-size: 13px;
+  overflow-wrap: anywhere;
+  text-align: right;
 }
 
 .rental-prices {
@@ -1072,6 +1081,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
   padding: 8px 12px;
   background: white;
   border-radius: 8px;
@@ -1114,6 +1124,8 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
   font-size: 12px;
   color: #64748b;
 }
@@ -1277,6 +1289,10 @@ onMounted(() => {
 }
 
 @media (max-width: 720px) {
+  .properties-page {
+    padding: 24px 14px 64px;
+  }
+
   .hero-title {
     font-size: 28px;
   }
@@ -1293,12 +1309,35 @@ onMounted(() => {
     grid-template-columns: 1fr;
   }
 
+  .property-card {
+    max-width: none;
+  }
+
   .property-actions {
     flex-direction: column;
   }
 
   .btn {
     width: 100%;
+  }
+
+  .property-pricing {
+    flex-direction: column;
+  }
+
+  .price-item {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .info-row,
+  .price-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .info-value {
+    text-align: left;
   }
 }
 
@@ -1310,6 +1349,10 @@ onMounted(() => {
   .search-fields input,
   .search-fields button {
     width: 100%;
+  }
+
+  .property-image-container {
+    height: 200px;
   }
 }
 </style>

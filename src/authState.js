@@ -44,7 +44,7 @@ export const isAuthenticated = computed(() => {
   return decoded.exp * 1000 > Date.now();
 });
 
-export const userName = computed(() => user.value?.name || "Guest");
+export const userName = computed(() => user.value?.fullName || user.value?.name || "Guest");
 
 // --------------------------
 // Auto logout handling

@@ -71,5 +71,5 @@ export async function loginCustomer(payload) {
 // ===========================================================
 export function logoutCustomer() {
   localStorage.removeItem("token");
-  localStorage.removeItem("customer");
+  localStorage.removeItem("user");
 }

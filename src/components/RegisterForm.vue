@@ -31,7 +31,7 @@
             type="text"
             :placeholder="registrationMethod === 'google' ? t('register.fullNameGooglePlaceholder') : t('register.fullNamePlaceholder')"
             class="input"
-            required
+            :required="registrationMethod === 'email'"
           />
         </div>
 
@@ -43,7 +43,7 @@
             type="email"
             :placeholder="registrationMethod === 'google' ? t('register.emailGooglePlaceholder') : t('register.emailPlaceholder')"
             class="input"
-            required
+            :required="registrationMethod === 'email'"
           />
         </div>
 
@@ -61,13 +61,13 @@
         <!-- Phone -->
         <div class="group">
           <label class="label">{{ t("register.phone") }}</label>
-          <input v-model="form.phonenumber" type="number" :placeholder="t('register.phonePlaceholder')" class="input" required />
+          <input v-model.number="form.phonenumber" type="number" :placeholder="t('register.phonePlaceholder')" class="input" required />
         </div>
 
         <!-- Account Number -->
         <div class="group">
           <label class="label">{{ t("register.accountNumber") }}</label>
-          <input v-model="form.acountnumber" type="number" :placeholder="t('register.accountNumberPlaceholder')" class="input" required />
+          <input v-model.number="form.acountnumber" type="number" :placeholder="t('register.accountNumberPlaceholder')" class="input" required />
         </div>
 
         <!-- Address -->
@@ -77,14 +77,13 @@
         </div>
 
         <!-- Profile Picture -->
-        <div class="group md:col-span-2">
+        <div v-if="registrationMethod === 'email'" class="group md:col-span-2">
           <label class="label">{{ t("register.profilePicture") }}</label>
           <input
             type="file"
             @change="handleFileUpload"
             accept="image/*"
             class="file-input"
-            :required="registrationMethod === 'email'"
           />
         </div>
 
@@ -125,6 +124,7 @@
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { registerCustomer, registerCustomerJson } from "../services/customerService.js";
+import { login as authLogin } from "../authState.js";
 
 const { t, locale } = useI18n();
 
@@ -148,6 +148,10 @@ const loading = ref(false);
 const message = ref("");
 const error = ref("");
 const showPassword = ref(false);
+
+function getErrorMessage(err, fallbackKey) {
+  return err?.message || err?.error || t(fallbackKey);
+}
 
 function handleFileUpload(e) {
   file.value = e.target.files[0];
@@ -210,22 +214,6 @@ function promptGoogleSignIn() {
   window.google.accounts.id.prompt();
 }
 
-function parseJwt(token) {
-  try {
-    const base64Url = token.split(".")[1];
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split("")
-        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-        .join("")
-    );
-    return JSON.parse(jsonPayload);
-  } catch (error) {
-    return null;
-  }
-}
-
 async function handleGoogleCredentialResponse(response) {
   if (!response?.credential) {
     googleError.value = t("register.googleAuthNotConfigured");
@@ -233,22 +221,12 @@ async function handleGoogleCredentialResponse(response) {
     return;
   }
 
-  const payload = parseJwt(response.credential);
-  if (!payload?.sub) {
-    googleError.value = t("register.googleAuthNotConfigured");
-    loading.value = false;
-    return;
-  }
-
   const registrationPayload = {
-    fullName: form.value.fullName,
-    email: form.value.email || payload.email,
     phonenumber: form.value.phonenumber,
     acountnumber: form.value.acountnumber,
     address: form.value.address,
-    googleId: payload.sub,
+    googleToken: response.credential,
     provider: "google",
-    profilePictureUrl: payload.picture || "",
   };
 
   try {
@@ -256,12 +234,20 @@ async function handleGoogleCredentialResponse(response) {
     error.value = "";
     const res = await registerCustomerJson(registrationPayload);
     message.value = res.message;
+
+    if (res?.token && res?.customer) {
+      authLogin(res.token, res.customer);
+      setTimeout(() => {
+        window.location.href = "/#/app/dashboard";
+      }, 300);
+    }
+
     registrationMethod.value = "email";
     form.value = { fullName: "", email: "", password: "", phonenumber: "", acountnumber: "", address: "" };
     file.value = null;
     googleError.value = "";
   } catch (err) {
-    googleError.value = err?.message || t("register.failed");
+    googleError.value = getErrorMessage(err, "register.failed");
   } finally {
     loading.value = false;
   }
@@ -274,13 +260,7 @@ async function handleRegister() {
   googleError.value = "";
 
   if (registrationMethod.value === "google") {
-    if (
-      !form.value.fullName ||
-      !form.value.email ||
-      !form.value.phonenumber ||
-      !form.value.acountnumber ||
-      !form.value.address
-    ) {
+    if (!form.value.phonenumber || !form.value.acountnumber || !form.value.address) {
       googleError.value = t("register.googleRequiredFieldsMissing");
       loading.value = false;
       return;
@@ -301,11 +281,18 @@ async function handleRegister() {
     const res = await registerCustomer(formData);
     message.value = res.message;
 
+    if (res?.token && res?.customer) {
+      authLogin(res.token, res.customer);
+      setTimeout(() => {
+        window.location.href = "/#/app/dashboard";
+      }, 300);
+    }
+
     registrationMethod.value = "email";
     form.value = { fullName: "", email: "", password: "", phonenumber: "", acountnumber: "", address: "" };
     file.value = null;
   } catch (err) {
-    error.value = err?.message || t("register.failed");
+    error.value = getErrorMessage(err, "register.failed");
   } finally {
     loading.value = false;
   }
